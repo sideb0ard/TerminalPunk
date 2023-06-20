@@ -35,9 +35,12 @@ function display_line(line) {
   textFont("monospace", 25);
   fill(cursor_color);;
   textSize(32);
-  text(">", 0, current_line * line_height);
+  let pos_y = current_line * line_height;
+  text(">", 0, pos_y);
+
   for (let i = 0; i < line_buffer.length; ++i) {
-    text(line[i], margin + i * key_width, current_line * line_height);
+    let pos_x = margin + i * key_width;
+    text(line[i], pos_x, pos_y);
   }
-  cursor.display(margin + line_buffer.length * key_width, current_line * line_height);
+  cursor.display(margin + line_buffer.length * key_width, pos_y);
 }

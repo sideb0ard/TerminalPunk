@@ -23,12 +23,12 @@ function setup() {
 
 function draw() {
   background(0);
-  key_width = width / terminal_width_in_chars;
+  key_width = (width - (margin * 2)) / terminal_width_in_chars;
   display_line(line_buffer);
 }
 
 function keyPressed() {
-  if (keyCode > 31 && keyCode < 91) {
+  if (keyCode > 31 && keyCode < 91 && line_buffer.length < terminal_width_in_chars) {
     line_buffer.push(key);
   }
   if (key == 'Backspace') {
