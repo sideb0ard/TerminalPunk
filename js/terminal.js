@@ -21,26 +21,28 @@ class Cursor {
   }
 }
 
-function display_history() {
-  textFont("monospace", 25);
-  fill(cursor_color);;
-  textSize(32);
-  text(">", 0, current_line * line_height);
-  for (let i = 0; i < line_buffer.length; ++i) {
-    text(line_buffer[i], margin + i * key_width, current_line * line_height);
+function refresh_display() {
+  display_history(history);
+  let line_buffer_line_num = history.length + 1;
+  display_line(line_buffer, line_buffer_line_num);
+  cursor.display(margin + line_buffer.length * key_width, line_buffer_line_num * line_height);
+}
+
+function display_history(history) {
+  for (let i = 0; i < history.length; i++) {
+    display_line(history[i], i + 1);
   }
 }
 
-function display_line(line) {
+function display_line(line, line_num) {
   textFont("monospace", 25);
   fill(cursor_color);;
   textSize(32);
-  let pos_y = current_line * line_height;
+  let pos_y = line_num * line_height;
   text(">", 0, pos_y);
 
-  for (let i = 0; i < line_buffer.length; ++i) {
+  for (let i = 0; i < line.length; ++i) {
     let pos_x = margin + i * key_width;
     text(line[i], pos_x, pos_y);
   }
-  cursor.display(margin + line_buffer.length * key_width, pos_y);
 }
