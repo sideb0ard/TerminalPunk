@@ -22,13 +22,15 @@ class Cursor {
 }
 
 function refresh_display() {
-  display_history(history);
+  display_screen_history(screen_history);
   let line_buffer_line_num = history.length + 1;
   display_line(line_buffer, line_buffer_line_num);
-  cursor.display(margin + line_buffer.length * key_width, line_buffer_line_num * line_height);
+  if (!is_computing) {
+    cursor.display(margin + line_buffer.length * key_width, line_buffer_line_num * line_height);
+  }
 }
 
-function display_history(history) {
+function display_screen_history(history) {
   for (let i = 0; i < history.length; i++) {
     display_line(history[i], i + 1);
   }

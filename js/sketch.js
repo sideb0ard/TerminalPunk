@@ -12,14 +12,19 @@ let cursor_blink_on_time = 40;
 let cursor_blink_off_time = 20;
 let cursor_color;
 
+let screen_history = [];
 let history = [];
 let line_buffer = [];
 let line_buffer_temp = [];
+
+let is_computing = false;
 
 const REAL_TIME_FREQUENCY = 440;
 
 let audio_context;
 let key_noise;
+
+let eval;
 
 function is_printable(key_code) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
@@ -51,6 +56,8 @@ function setup() {
   key_noise.connect(audio_context.destination);
   cursor = new Cursor();
   cursor_color = color(0, 255, 0);
+
+  eval = new Evaluator();
 }
 
 function draw() {
@@ -70,7 +77,7 @@ function keyPressed() {
   }
   if (keyCode == 76) {
     if (keyIsDown(CONTROL)) {
-      history = [];
+      screen_history = [];
       return;
     }
   }
@@ -105,10 +112,20 @@ function keyPressed() {
   }
 
   if (key == 'Enter') {
+    is_computing = true;
+    let response = eval.Eval(line_buffer);
+    print("Res::", response);
+    printComputerResponse(response);
+    is_computing = false;
     history.push(line_buffer);
+    screen_history.push(line_buffer);
     line_buffer = [];
     history_idx = history.length;
   }
+}
+
+function printComputerResponse(response) {
+  screen_history.push(response);
 }
 
 addEventListener("keyup", (event) => {
