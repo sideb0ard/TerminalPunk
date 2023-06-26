@@ -1,31 +1,26 @@
-const REAL_TIME_FREQUENCY = 440;
-
-let eval;
-
-let key_noise;
-
 let cursor;
-let cursor_color;
+let cursorColor;
+let computerColor;
 
 let computer;
 
-function is_printable(key_code) {
+function isPrintable(keyCode) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
 
   // space
-  if (key_code == 32)
+  if (keyCode == 32)
     return true;
   // 0 - 9
-  if (key_code > 47 && key_code < 58)
+  if (keyCode > 47 && keyCode < 58)
     return true;
   // a - z
-  if (key_code > 64 && key_code < 91)
+  if (keyCode > 64 && keyCode < 91)
     return true;
   // numpad 
-  if (key_code > 95 && key_code < 112)
+  if (keyCode > 95 && keyCode < 112)
     return true;
   // semi-colon -> single quote
-  if (key_code > 185 && key_code < 223)
+  if (keyCode > 185 && keyCode < 223)
     return true;
 
   return false;
@@ -35,62 +30,63 @@ function setup() {
   createCanvas(windowWidth, windowHeight);
 
   cursor = new Cursor();
-  cursor_color = color(0, 255, 0);
+  cursorColor = color(0, 255, 0);
 
   computer = new Computer();
+  computerColor = color(0, 195, 0);
 }
 
 function draw() {
   background(0);
-  refresh_display();
+  refreshDisplay();
 }
 
 function keyPressed() {
   print(keyCode, key);
   if (key == 'Backspace') {
-    if (line_buffer.length > 0) {
-      line_buffer.pop();
+    if (lineBuffer.length > 0) {
+      lineBuffer.pop();
     }
   }
-  if (keyCode == 76) {
+  if (keyCode == 76 || keyCode == 68) {
     if (keyIsDown(CONTROL)) {
-      screen_history = [];
+      screenHistory = [];
       return;
     }
   }
   if (keyCode == 85) {
     if (keyIsDown(CONTROL)) {
-      line_buffer = [];
+      lineBuffer = [];
       return;
     }
   }
-  if (is_printable(keyCode) && line_buffer.length < terminal_width_in_chars) {
-    line_buffer.push(key);
+  if (isPrintable(keyCode) && lineBuffer.length < terminalWidthInChars) {
+    lineBuffer.push(key);
   }
 
   if (key == 'ArrowUp') {
-    if (history_idx == history.length) {
-      line_buffer_tmp = line_buffer;
+    if (historyIdx == history.length) {
+      lineBufferTmp = lineBuffer;
     }
-    if (history_idx > 0) {
-      line_buffer = [...history[history_idx - 1]];
-      history_idx--;
+    if (historyIdx > 0) {
+      lineBuffer = [...history[historyIdx - 1]];
+      historyIdx--;
     }
   }
 
   if (key == 'ArrowDown') {
-    if (history_idx == history.length) {
-      line_buffer = line_buffer_tmp;
+    if (historyIdx == history.length) {
+      lineBuffer = lineBufferTmp;
     }
-    if (history_idx < history.length) {
-      line_buffer = [...history[history_idx + 1]];
-      history_idx++;
+    if (historyIdx < history.length) {
+      lineBuffer = [...history[historyIdx + 1]];
+      historyIdx++;
     }
   }
 
   if (key == 'Enter') {
-    computer.Eval(line_buffer);
-    line_buffer = [];
+    computer.eval(lineBuffer);
+    lineBuffer = [];
 
   }
 }
