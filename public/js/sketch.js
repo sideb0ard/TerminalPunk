@@ -2,11 +2,12 @@ const REAL_TIME_FREQUENCY = 440;
 
 let eval;
 
-let audio_context;
 let key_noise;
 
 let cursor;
 let cursor_color;
+
+let computer;
 
 function is_printable(key_code) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
@@ -32,14 +33,11 @@ function is_printable(key_code) {
 
 function setup() {
   createCanvas(windowWidth, windowHeight);
-  audio_context = new AudioContext();
-  key_noise = audio_context.createOscillator();
-  key_noise.frequency.value = REAL_TIME_FREQUENCY;
-  key_noise.connect(audio_context.destination);
+
   cursor = new Cursor();
   cursor_color = color(0, 255, 0);
 
-  eval = new Evaluator();
+  computer = new Computer();
 }
 
 function draw() {
@@ -91,32 +89,16 @@ function keyPressed() {
   }
 
   if (key == 'Enter') {
-    is_computing = true;
-    let response = eval.Eval(line_buffer);
-    print("Res::", response);
-    if (line_buffer.length > 0) {
-      history.push(line_buffer);
-    }
-    screen_history.push(new HistoryEntry(0, line_buffer));
-    printComputerResponse(response);
-    is_computing = false;
+    computer.Eval(line_buffer);
     line_buffer = [];
-    history_idx = history.length;
-  }
-}
 
-function printComputerResponse(response) {
-  screen_history.push(new HistoryEntry(1, response));
+  }
 }
 
 addEventListener("keyup", (event) => {
   print("CLAKC!");
-  // key_noise.stop(0);
 });
-addEventListener("keydown", (event) => {
-  //print("DOON");
-  // key_noise.start(0);
-});
+addEventListener("keydown", (event) => {});
 
 function windowResized() {
   resizeCanvas(windowWidth, windowHeight);

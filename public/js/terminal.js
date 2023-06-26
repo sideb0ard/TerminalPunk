@@ -21,8 +21,6 @@ let history_idx = 0;
 let line_buffer = [];
 let line_buffer_temp = [];
 
-let is_computing = false;
-
 class HistoryEntry {
   constructor(type, content) {
     this.type = type;
@@ -56,18 +54,19 @@ class Cursor {
 function refresh_display() {
   let history_lines_to_display = Math.min(screen_history.length,
     Math.floor(height / line_height) - 1);
-  console.log(history_lines_to_display, screen_history.length);
 
   let start_idx = 0;
   if (screen_history.length > history_lines_to_display) {
     start_idx = screen_history.length - history_lines_to_display;
-    console.log("STYART AT IDX:", start_idx);
   }
 
   display_screen_history(start_idx, screen_history);
+
   let current_line_num = history_lines_to_display + 1;
-  display_line(screen_entry_user_type, line_buffer, current_line_num);
-  if (!is_computing) {
+  if (computer.is_computing) {
+    computer.DisplayResponse(current_line_num);
+  } else {
+    display_line(screen_entry_user_type, line_buffer, current_line_num);
     cursor.display(margin + line_buffer.length * text_width, current_line_num * line_height);
   }
 }
@@ -80,7 +79,6 @@ function display_screen_history(start_idx, history) {
 }
 
 function display_line(type, line, line_num) {
-  print("HGOTLINE:", type, line, line_num);
   textFont("monospace", font_size);
   fill(cursor_color);;
   let pos_y = line_num * line_height;
