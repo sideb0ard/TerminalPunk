@@ -1,3 +1,35 @@
+let terminal_width_in_chars = 60;
+let margin = 30;
+
+let current_line = 1;
+let line_height = 40;
+let font_size = 28;
+let text_width = 20;
+
+let cursor_x = 0;
+
+let cursor_blink_on_time = 40;
+let cursor_blink_off_time = 20;
+
+const screen_entry_user_type = 0;
+const screen_entry_computer_type = 1;
+
+let screen_history = [];
+let history = [];
+let history_idx = 0;
+
+let line_buffer = [];
+let line_buffer_temp = [];
+
+let is_computing = false;
+
+class HistoryEntry {
+  constructor(type, content) {
+    this.type = type;
+    this.content = content;
+  }
+}
+
 class Cursor {
   constructor() {
     this.cntr = 0;
@@ -7,7 +39,7 @@ class Cursor {
   display(x, y) {
     if (this.is_blinking) {
       fill(cursor_color);;
-      rect(x, y, key_width, 10);
+      rect(x, y, text_width, 10);
     }
     this.cntr++;
     if (this.cntr == this.next_state_change) {
@@ -22,29 +54,44 @@ class Cursor {
 }
 
 function refresh_display() {
-  display_screen_history(screen_history);
-  let line_buffer_line_num = history.length + 1;
-  display_line(line_buffer, line_buffer_line_num);
+  let history_lines_to_display = Math.min(screen_history.length,
+    Math.floor(height / line_height) - 1);
+  console.log(history_lines_to_display, screen_history.length);
+
+  let start_idx = 0;
+  if (screen_history.length > history_lines_to_display) {
+    start_idx = screen_history.length - history_lines_to_display;
+    console.log("STYART AT IDX:", start_idx);
+  }
+
+  display_screen_history(start_idx, screen_history);
+  let current_line_num = history_lines_to_display + 1;
+  display_line(screen_entry_user_type, line_buffer, current_line_num);
   if (!is_computing) {
-    cursor.display(margin + line_buffer.length * key_width, line_buffer_line_num * line_height);
+    cursor.display(margin + line_buffer.length * text_width, current_line_num * line_height);
   }
 }
 
-function display_screen_history(history) {
-  for (let i = 0; i < history.length; i++) {
-    display_line(history[i], i + 1);
+function display_screen_history(start_idx, history) {
+  let line_num = 1;
+  for (let i = start_idx; i < history.length; i++) {
+    display_line(history[i].type, history[i].content, line_num++);
   }
 }
 
-function display_line(line, line_num) {
-  textFont("monospace", 25);
+function display_line(type, line, line_num) {
+  print("HGOTLINE:", type, line, line_num);
+  textFont("monospace", font_size);
   fill(cursor_color);;
-  textSize(32);
   let pos_y = line_num * line_height;
-  text(">", 0, pos_y);
+  let pos_x_start = 0;
+  if (type === 0) {
+    text(">", 0, pos_y);
+    pos_x_start = margin;
+  }
 
   for (let i = 0; i < line.length; ++i) {
-    let pos_x = margin + i * key_width;
+    let pos_x = pos_x_start + i * text_width;
     text(line[i], pos_x, pos_y);
   }
 }

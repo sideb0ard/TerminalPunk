@@ -1,30 +1,12 @@
-let terminal_width_in_chars = 60;
-let margin = 30;
-
-let current_line = 1;
-let line_height = 40;
-
-let key_width = 0;
-let cursor_x = 0;
-
-let cursor;
-let cursor_blink_on_time = 40;
-let cursor_blink_off_time = 20;
-let cursor_color;
-
-let screen_history = [];
-let history = [];
-let line_buffer = [];
-let line_buffer_temp = [];
-
-let is_computing = false;
-
 const REAL_TIME_FREQUENCY = 440;
+
+let eval;
 
 let audio_context;
 let key_noise;
 
-let eval;
+let cursor;
+let cursor_color;
 
 function is_printable(key_code) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
@@ -62,11 +44,8 @@ function setup() {
 
 function draw() {
   background(0);
-  key_width = (width - (margin * 2)) / terminal_width_in_chars;
   refresh_display();
 }
-
-let history_idx = 0;
 
 function keyPressed() {
   print(keyCode, key);
@@ -115,17 +94,19 @@ function keyPressed() {
     is_computing = true;
     let response = eval.Eval(line_buffer);
     print("Res::", response);
+    if (line_buffer.length > 0) {
+      history.push(line_buffer);
+    }
+    screen_history.push(new HistoryEntry(0, line_buffer));
     printComputerResponse(response);
     is_computing = false;
-    history.push(line_buffer);
-    screen_history.push(line_buffer);
     line_buffer = [];
     history_idx = history.length;
   }
 }
 
 function printComputerResponse(response) {
-  screen_history.push(response);
+  screen_history.push(new HistoryEntry(1, response));
 }
 
 addEventListener("keyup", (event) => {
@@ -136,3 +117,7 @@ addEventListener("keydown", (event) => {
   //print("DOON");
   // key_noise.start(0);
 });
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
