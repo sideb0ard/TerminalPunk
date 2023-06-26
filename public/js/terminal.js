@@ -4,7 +4,7 @@ const MARGIN = 30;
 let currentLine = 1;
 let lineHeight = 40;
 let fontSize = 28;
-let textWidth = 20;
+let fontWidth = 20;
 
 let cursorX = 0;
 
@@ -37,7 +37,7 @@ class Cursor {
   display(x, y) {
     if (this.isBlinking) {
       fill(cursorColor);;
-      rect(x, y, textWidth, 10);
+      rect(x, y, fontWidth, 10);
     }
     this.cntr++;
     if (this.cntr == this.nextStateChange) {
@@ -67,7 +67,7 @@ function refreshDisplay() {
     computer.displayResponse(currentLineNum);
   } else {
     displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer, currentLineNum);
-    cursor.display(MARGIN + lineBuffer.length * textWidth, currentLineNum * lineHeight);
+    cursor.display(MARGIN + lineBuffer.length * fontWidth, currentLineNum * lineHeight);
   }
 }
 
@@ -91,7 +91,7 @@ function displayLine(type, line, lineNum) {
   }
 
   for (let i = 0; i < line.length; ++i) {
-    let posX = posXStart + i * textWidth;
+    let posX = posXStart + i * fontWidth;
     text(line[i], posX, posY);
   }
 }

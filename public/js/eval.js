@@ -30,7 +30,7 @@ class Computer {
     let posXStart = 0;
 
     for (let i = 0; i < this.responseIdx; ++i) {
-      let posX = posXStart + i * textWidth;
+      let posX = posXStart + i * fontWidth;
       text(this.responseLine[i], posX, posY);
     }
   }
