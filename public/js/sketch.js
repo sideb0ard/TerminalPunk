@@ -60,7 +60,7 @@ function keyPressed() {
       return;
     }
   }
-  if (isPrintable(keyCode) && lineBuffer.length < terminalWidthInChars) {
+  if (isPrintable(keyCode)) {
     lineBuffer.push(key);
   }
 
@@ -85,7 +85,11 @@ function keyPressed() {
   }
 
   if (key == 'Enter') {
-    computer.eval(lineBuffer);
+    computer.read(lineBuffer);
+    screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
+    if (lineBuffer.length > 0) {
+      history.push(lineBuffer);
+    }
     lineBuffer = [];
 
   }

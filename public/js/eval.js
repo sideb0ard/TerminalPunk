@@ -1,6 +1,6 @@
-// const intro = "Your eyes open... your mind expodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The elephant headed barman asks what your having...";
-const yourName = "Iron Dollar Adamson";
-const intro = "Your name is " + yourName;
+const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The elephant headed barman asks what your having...";
+//const yourName = "Iron Dollar Adamson";
+//const intro = "Your name is " + yourName;
 
 class Computer {
   constructor() {
@@ -9,40 +9,34 @@ class Computer {
     this.responseLine = intro;
     this.responseIdx = 0;
     this.nextFrameIncr = 0;
+    this.currentLine = 1;
   }
 
-  displayResponse(lineNum) {
+  read(inputLine) {
+    this.inputLine = inputLine.slice();
+    this.isComputing = true;
+    this.responseLine = "computer says no";
+    this.responseIdx = 0;
+  }
+
+  eval() {
+    // chomp chomp chomp;
+    this.responseLine = "computer says no.";
+  }
+
+  // slow response ...
+  print() {
+    if (!this.isComputing) return "";
+
     if (frameCount > this.nextFrameIncr) {
       this.responseIdx++;
       if (this.responseIdx >= this.responseLine.length) {
         this.isComputing = false;
-
-        screenHistory.push(new HistoryEntry(1, this.responseLine));
-        historyIdx = history.length;
+      } else {
+        this.nextFrameIncr = frameCount + random(3);
       }
-      this.nextFrameIncr = frameCount + random(13);
-
     }
-
-    textFont("monospace", fontSize);
-    fill(computerColor);;
-    let posY = lineNum * lineHeight;
-    let posXStart = 0;
-
-    for (let i = 0; i < this.responseIdx; ++i) {
-      let posX = posXStart + i * fontWidth;
-      text(this.responseLine[i], posX, posY);
-    }
-  }
-
-  eval(inputLine) {
-    this.inputLine = inputLine.slice();
-    screenHistory.push(new HistoryEntry(0, this.inputLine));
-    if (this.inputLine.length > 0) {
-      history.push(this.inputLine);
-      this.isComputing = true;
-      this.responseLine = "does not compute.";
-      this.responseIdx = 0;
-    }
+    console.log("HIS", this.reponseLine);
+    return this.responseLine.slice(0, this.responseIdx);
   }
 }

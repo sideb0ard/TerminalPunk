@@ -51,47 +51,72 @@ class Cursor {
   }
 }
 
-function refreshDisplay() {
-  let historyLinesToDisplay = Math.min(screenHistory.length,
-    Math.floor(height / lineHeight) - 1);
+let lineNum = 1;
 
-  let startIdx = 0;
-  if (screenHistory.length > historyLinesToDisplay) {
-    startIdx = screenHistory.length - historyLinesToDisplay;
+function refreshDisplay() {
+  let displayLenInLines = Math.floor(height / lineHeight);
+
+  let computeEval = computer.print();
+  if (computeEval.length > 0 && computer.isComputing == false) {
+    console.log("YO EVSL LEN:", computeEval, computeEval.length);
+    screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
+    computeEval = "";
+  }
+  console.log(computeEval, computer.isComputing, screenHistory);
+
+  let lineWidthChars = width / fontWidth;
+
+  let activeLines = lineBuffer % lineWidthChars;
+  if (computer.isComputing) {
+    activeLines = computeEval % lineWidthChars;
   }
 
-  displayScreenHistory(startIdx, screenHistory);
+  let historyLinesToDisplay = Math.min(screenHistory.length,
+    displayLenInLines - activeLines);
 
-  let currentLineNum = historyLinesToDisplay + 1;
+  let historyStartIdx = 0;
+  if (screenHistory.length > historyLinesToDisplay) {
+    historyStartIdx = screenHistory.length - historyLinesToDisplay;
+  }
+
+  lineNum = 1;
+  displayScreenHistory(historyStartIdx, screenHistory);
+
   if (computer.isComputing) {
-    computer.displayResponse(currentLineNum);
+    displayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
   } else {
-    displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer, currentLineNum);
-    cursor.display(MARGIN + lineBuffer.length * fontWidth, currentLineNum * lineHeight);
+    displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
+    cursor.display(MARGIN + lineBuffer.length * fontWidth, (lineNum - 1) * lineHeight);
   }
 }
 
 function displayScreenHistory(startIdx, history) {
-  let lineNum = 1;
   for (let i = startIdx; i < history.length; i++) {
-    displayLine(history[i].type, history[i].content, lineNum++);
+    displayLine(history[i].type, history[i].content);
   }
 }
 
-function displayLine(type, line, lineNum) {
+function displayLine(type, line) {
   textFont("monospace", fontSize);
-  let posY = lineNum * lineHeight;
-  let posXStart = 0;
-  if (type === 0) {
-    text(">", 0, posY);
-    posXStart = MARGIN;
+  let offset = 0;
+  if (type === SCREEN_ENTRY_USER_TYPE) {
+    offset = MARGIN;
+    text(">", 0, lineNum * lineHeight);
     fill(cursorColor);;
   } else {
     fill(computerColor);;
   }
+  let posXStart = offset;
 
+  let maxCharsPerLine = Math.floor(width / fontWidth);
   for (let i = 0; i < line.length; ++i) {
-    let posX = posXStart + i * fontWidth;
+    let posX = posXStart + (i % maxCharsPerLine) * fontWidth;
+    if (i % maxCharsPerLine == 0) {
+      lineNum++;
+    }
+    let posY = lineNum * lineHeight;
     text(line[i], posX, posY);
   }
+  lineNum++;
+
 }
