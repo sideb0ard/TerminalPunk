@@ -45,7 +45,7 @@ function keyPressed() {
   print(keyCode, key);
   if (key == 'Backspace') {
     if (lineBuffer.length > 0) {
-      lineBuffer.pop();
+      lineBuffer = lineBuffer.substring(0, lineBuffer.length - 1);
     }
   }
   if (keyCode == 76 || keyCode == 68) {
@@ -56,41 +56,47 @@ function keyPressed() {
   }
   if (keyCode == 85) {
     if (keyIsDown(CONTROL)) {
-      lineBuffer = [];
+      lineBuffer = "";
       return;
     }
   }
   if (isPrintable(keyCode)) {
-    lineBuffer.push(key);
+    lineBuffer = lineBuffer + key;
+    console.log("LINEBUFCAT:", lineBuffer, keyCode);
   }
 
   if (key == 'ArrowUp') {
+    print("HISTORY:", history, historyIdx, history.length);
     if (historyIdx == history.length) {
+      // lineBufferTmp = lineBuffer;
       lineBufferTmp = lineBuffer;
     }
     if (historyIdx > 0) {
-      lineBuffer = [...history[historyIdx - 1]];
+      lineBuffer = history[historyIdx - 1];
       historyIdx--;
     }
   }
 
   if (key == 'ArrowDown') {
-    if (historyIdx == history.length) {
-      lineBuffer = lineBufferTmp;
-    }
     if (historyIdx < history.length) {
-      lineBuffer = [...history[historyIdx + 1]];
       historyIdx++;
+      if (historyIdx == history.length) {
+        lineBuffer = lineBufferTmp;
+      } else if (historyIdx < history.length) {
+        lineBuffer = history[historyIdx];
+      }
     }
   }
 
   if (key == 'Enter') {
+    console.log("UPO! ", lineBuffer, typeof(lineBuffer));
     computer.read(lineBuffer);
     screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
     if (lineBuffer.length > 0) {
       history.push(lineBuffer);
+      historyIdx = history.length;
     }
-    lineBuffer = [];
+    lineBuffer = "";
 
   }
 }

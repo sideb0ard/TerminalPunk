@@ -1,6 +1,6 @@
-const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The elephant headed barman asks what your having...";
-//const yourName = "Iron Dollar Adamson";
-//const intro = "Your name is " + yourName;
+// const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
+const yourName = "Iron Dollar Adamson";
+const intro = "Your name is " + yourName;
 
 class Computer {
   constructor() {
@@ -21,7 +21,9 @@ class Computer {
 
   eval() {
     // chomp chomp chomp;
-    this.responseLine = "computer says no.";
+    if (this.inputline.length > 0) {
+      this.responseLine = "computer says no.";
+    }
   }
 
   // slow response ...
@@ -36,7 +38,6 @@ class Computer {
         this.nextFrameIncr = frameCount + random(3);
       }
     }
-    console.log("HIS", this.reponseLine);
     return this.responseLine.slice(0, this.responseIdx);
   }
 }

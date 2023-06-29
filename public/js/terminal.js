@@ -18,8 +18,8 @@ let screenHistory = [];
 let history = [];
 let historyIdx = 0;
 
-let lineBuffer = [];
-let lineBufferTemp = [];
+let lineBuffer = "STARTRESR";
+let lineBufferTemp = "";
 
 class HistoryEntry {
   constructor(type, content) {
@@ -58,17 +58,15 @@ function refreshDisplay() {
 
   let computeEval = computer.print();
   if (computeEval.length > 0 && computer.isComputing == false) {
-    console.log("YO EVSL LEN:", computeEval, computeEval.length);
     screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
     computeEval = "";
   }
-  console.log(computeEval, computer.isComputing, screenHistory);
 
   let lineWidthChars = width / fontWidth;
 
-  let activeLines = lineBuffer % lineWidthChars;
+  let activeLines = lineBuffer.length % lineWidthChars;
   if (computer.isComputing) {
-    activeLines = computeEval % lineWidthChars;
+    activeLines = computeEval.length % lineWidthChars;
   }
 
   let historyLinesToDisplay = Math.min(screenHistory.length,
@@ -96,7 +94,15 @@ function displayScreenHistory(startIdx, history) {
   }
 }
 
+function displayWord(startX, posY, word) {
+  for (let i = 0; i < word.length; ++i) {
+    let posX = startX + i * fontWidth;
+    text(word[i], posX, posY);
+  }
+}
+
 function displayLine(type, line) {
+
   textFont("monospace", fontSize);
   let offset = 0;
   if (type === SCREEN_ENTRY_USER_TYPE) {
@@ -106,17 +112,33 @@ function displayLine(type, line) {
   } else {
     fill(computerColor);;
   }
-  let posXStart = offset;
+  if (line.length == 0) {
+    lineNum++;
+    return;
+  }
 
-  let maxCharsPerLine = Math.floor(width / fontWidth);
-  for (let i = 0; i < line.length; ++i) {
-    let posX = posXStart + (i % maxCharsPerLine) * fontWidth;
-    if (i % maxCharsPerLine == 0) {
+
+  let maxCharsPerLine = Math.floor((width - offset) / fontWidth);
+  let charCount = 0;
+  let posX = offset;
+
+  let wurds = line.split(" ");
+  while (wurds.length) {
+    let wurd = wurds.shift();
+    if (wurd.length > (maxCharsPerLine - charCount)) {
       lineNum++;
+      posX = offset;
+      charCount = 0;
     }
     let posY = lineNum * lineHeight;
-    text(line[i], posX, posY);
+    displayWord(posX, posY, wurd);
+    posX += wurd.length * fontWidth;
+    charCount += wurd.length;
+    if (wurds.length) {
+      text(" ", posX, posY);
+      posX += fontWidth;
+      charCount++;
+    }
   }
   lineNum++;
-
 }
