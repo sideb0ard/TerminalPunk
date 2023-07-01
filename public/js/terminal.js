@@ -61,7 +61,6 @@ function refreshDisplay() {
   let historyLinesToDisplay = Math.min(screenHistory.length,
     displayLenInLines - 2);
 
-  //let activeLines = lineBuffer.length % lineWidthChars;
 
   let historyStartIdx = 0;
   if (screenHistory.length > historyLinesToDisplay) {
@@ -71,16 +70,20 @@ function refreshDisplay() {
   lineNum = 1;
   displayScreenHistory(historyStartIdx, screenHistory);
 
+  let computeEval;
   if (computer.isComputing) {
-    let computeEval = computer.print();
-    if (computeEval.length > 0 && computer.isComputing == false) {
+    computeEval = computer.print();
+  }
+  if (computeEval) {
+    displayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
+    if (!computer.isComputing) {
       screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
     }
-    displayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
   } else {
     displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
     cursor.display(MARGIN + lineBuffer.length * fontWidth, (lineNum - 1) * lineHeight);
   }
+
 }
 
 function displayScreenHistory(startIdx, history) {
