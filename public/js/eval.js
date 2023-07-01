@@ -15,7 +15,11 @@ class Computer {
   read(inputLine) {
     this.inputLine = inputLine.slice();
     this.isComputing = true;
-    this.responseLine = "computer says no";
+    if (this.inputLine.length > 0) {
+      this.responseLine = "computer says no";
+    } else {
+      this.responseLine = "";
+    }
     this.responseIdx = 0;
   }
 

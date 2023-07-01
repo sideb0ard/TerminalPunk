@@ -62,13 +62,10 @@ function keyPressed() {
   }
   if (isPrintable(keyCode)) {
     lineBuffer = lineBuffer + key;
-    console.log("LINEBUFCAT:", lineBuffer, keyCode);
   }
 
   if (key == 'ArrowUp') {
-    print("HISTORY:", history, historyIdx, history.length);
     if (historyIdx == history.length) {
-      // lineBufferTmp = lineBuffer;
       lineBufferTmp = lineBuffer;
     }
     if (historyIdx > 0) {
@@ -89,7 +86,6 @@ function keyPressed() {
   }
 
   if (key == 'Enter') {
-    console.log("UPO! ", lineBuffer, typeof(lineBuffer));
     computer.read(lineBuffer);
     screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
     if (lineBuffer.length > 0) {

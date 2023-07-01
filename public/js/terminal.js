@@ -54,23 +54,14 @@ class Cursor {
 let lineNum = 1;
 
 function refreshDisplay() {
+
   let displayLenInLines = Math.floor(height / lineHeight);
-
-  let computeEval = computer.print();
-  if (computeEval.length > 0 && computer.isComputing == false) {
-    screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
-    computeEval = "";
-  }
-
   let lineWidthChars = width / fontWidth;
 
-  let activeLines = lineBuffer.length % lineWidthChars;
-  if (computer.isComputing) {
-    activeLines = computeEval.length % lineWidthChars;
-  }
-
   let historyLinesToDisplay = Math.min(screenHistory.length,
-    displayLenInLines - activeLines);
+    displayLenInLines - 2);
+
+  //let activeLines = lineBuffer.length % lineWidthChars;
 
   let historyStartIdx = 0;
   if (screenHistory.length > historyLinesToDisplay) {
@@ -81,6 +72,10 @@ function refreshDisplay() {
   displayScreenHistory(historyStartIdx, screenHistory);
 
   if (computer.isComputing) {
+    let computeEval = computer.print();
+    if (computeEval.length > 0 && computer.isComputing == false) {
+      screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
+    }
     displayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
   } else {
     displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
@@ -106,9 +101,9 @@ function displayLine(type, line) {
   textFont("monospace", fontSize);
   let offset = 0;
   if (type === SCREEN_ENTRY_USER_TYPE) {
-    offset = MARGIN;
-    text(">", 0, lineNum * lineHeight);
     fill(cursorColor);;
+    text(">", 0, lineNum * lineHeight);
+    offset = MARGIN;
   } else {
     fill(computerColor);;
   }
