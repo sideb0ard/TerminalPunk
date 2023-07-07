@@ -18,7 +18,7 @@ let screenHistory = [];
 let history = [];
 let historyIdx = 0;
 
-let lineBuffer = "STARTRESR";
+let lineBuffer = "";
 let lineBufferTemp = "";
 
 class HistoryEntry {

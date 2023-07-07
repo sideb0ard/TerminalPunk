@@ -2,6 +2,21 @@ const intro = "Your eyes open... your mind explodes with input - you find yourse
 // const yourName = "Iron Dollar Adamson";
 // const intro = "Your name is " + yourName;
 
+const drinks = ["whiskey", "beer", "wine", "coke", "oil", "tea", "coffee", "piss", "water"];
+
+function barConversation(line) {
+  var words = line.split(" ");
+  print(":WURDS:", words);
+  for (const word of words) {
+    print("WORD:", word);
+    print("DRUNKS:", drinks);
+    if (drinks.includes(word)) {
+      return "Barman slides a greasy glass of " + word + " along the bar to you.";
+    }
+  }
+  return "computer says no";
+};
+
 class Computer {
   constructor() {
     this.isComputing = true;
@@ -16,7 +31,7 @@ class Computer {
     this.inputLine = inputLine.slice();
     this.isComputing = true;
     if (this.inputLine.length > 0) {
-      this.responseLine = "computer says no";
+      this.responseLine = barConversation(this.inputLine);
     } else {
       this.responseLine = "";
     }
