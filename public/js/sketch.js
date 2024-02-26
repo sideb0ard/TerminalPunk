@@ -4,6 +4,49 @@ let computerColor;
 
 let computer;
 
+let statusBar;
+let showStatusBar = false;
+
+let devMode = true;
+
+let environment = {
+  "location": "/foo/bar",
+}
+
+let map = {
+  "/": {
+    "usr": {},
+    "home": {},
+    "opt": {},
+    "bin": {},
+    "sbin": {},
+    "bin": {},
+    "etc": {},
+    "tmp": {},
+    "dev": {},
+    "var": {
+      "log": {},
+    },
+    "foo": {
+      "bar": {},
+    },
+  }
+}
+
+function ChDir(loc) {
+  let fullpath = [];
+  let isAbsolute = loc.startsWith("/");
+  if (isAbsolute) {
+    fullpath.push("/");
+    loc = loc.substr(1);
+  } else {}
+  fullpath.push(...loc.split("/"));
+  fullpath.forEach((d) => {
+    print("BLAH:", d);
+  });
+  print("Changing dir from ", environment["location"], " to ", loc);
+}
+
 function isPrintable(keyCode) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
 
@@ -34,11 +77,38 @@ function setup() {
 
   computer = new Computer();
   computerColor = color(0, 195, 0);
+
+  statusBar = new StatusBar();
+
 }
+
+let glitchx = 500;
+let glitchy = 500;
+let glitchMod = 50;
+let glitchRadius = 70;
+let glitchLen = 100;
 
 function draw() {
   background(0);
+  strokeWeight(5);
   refreshDisplay();
+  computer.display();
+
+  // if (frameCount % glitchMod == 0) {
+  //   glitchx += random(-500, 500);
+  //   if (glitchx < 0) glitchx += width;
+  //   if (glitchx > width) glitchx -= width;
+  //   glitchy += random(-500, 500);
+  //   if (glitchy < 0) glitchy += height;
+  //   if (glitchy > width) glitchy -= height;
+
+  // }
+  // if (frameCount % glitchMod < (glitchMod / 10)) {
+  //   strokeWeight(glitchRadius);
+  //   drawSquiggle(glitchx, glitchy, glitchRadius, glitchLen);
+  //   glitchRadius = glitchRadius + 3 % 30;
+  //   glitchLen = glitchLen + 4 % 27;
+  // }
 }
 
 function keyPressed() {
@@ -91,6 +161,7 @@ function keyPressed() {
     if (lineBuffer.length > 0) {
       history.push(lineBuffer);
       historyIdx = history.length;
+      showStatusBar = true;
     }
     lineBuffer = "";
 

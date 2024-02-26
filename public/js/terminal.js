@@ -21,6 +21,34 @@ let historyIdx = 0;
 let lineBuffer = "";
 let lineBufferTemp = "";
 
+const statusHeight = 50;
+
+class StatusBar {
+  constructor() {
+    this.credit = 107.00;
+    this.os = "utf-8[solx]";
+    this.height = statusHeight;
+    this.color = color(52, 66, 89, 0);
+    this.textColor = color(218, 227, 242, 0);
+  }
+  display() {
+    if (alpha(this.color) < 256) {
+      this.color.setAlpha(alpha(this.color) + 1);
+      this.textColor.setAlpha(alpha(this.textColor) + 1);
+    }
+    let y = height - this.height;
+    fill(this.color);
+    rect(0, y, width, height);
+    textFont("monospace", fontSize);
+    fill(this.textColor);
+    let displayX = 10;
+    let displayY = y + 30;
+    displayWord(displayX, displayY, environment["location"]);
+    displayX = width - 230;
+    displayWord(displayX, displayY, this.os);
+  }
+}
+
 class HistoryEntry {
   constructor(type, content) {
     this.type = type;
@@ -36,7 +64,7 @@ class Cursor {
   }
   display(x, y) {
     if (this.isBlinking) {
-      fill(cursorColor);;
+      fill(cursorColor);
       rect(x, y, fontWidth, 10);
     }
     this.cntr++;
@@ -82,6 +110,10 @@ function refreshDisplay() {
   } else {
     displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
     cursor.display(MARGIN + lineBuffer.length * fontWidth, (lineNum - 1) * lineHeight);
+  }
+
+  if (showStatusBar) {
+    statusBar.display();
   }
 
 }

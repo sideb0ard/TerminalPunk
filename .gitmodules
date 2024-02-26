@@ -1,0 +1,3 @@
+[submodule "public/js/p5drawinglib"]
+	path = public/js/p5drawinglib
+	url = https://github.com/sideb0ard/p5drawinglib
