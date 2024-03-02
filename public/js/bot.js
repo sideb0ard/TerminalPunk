@@ -236,33 +236,37 @@ class Bot {
     this.isTalking = false;
   }
 
-  display() {
+  display(p) {
     let topx = width - (BotWidth * 2) * PixWidth;
     let topy = height - statusHeight - (BotWidth * 2) * PixWidth;
-    noStroke();
-    fill(0, 255, 0);
+    p.noStroke();
+    p.fill(0, 255, 0);
     this.head.forEach((pix) => {
       let x = topx + pix.x * PixWidth;
       let y = topy + pix.y * PixWidth;
-      square(x, y, PixWidth);
+      p.square(x, y, PixWidth);
     });
     this.eyes.forEach((pix) => {
       let x = topx + pix.x * PixWidth;
       let y = topy + pix.y * PixWidth;
-      square(x, y, PixWidth);
+      p.square(x, y, PixWidth);
     });
     if (this.isTalking && (frameCount % 30 < 15)) {
       this.openSmile.forEach((pix) => {
         let x = topx + pix.x * PixWidth;
         let y = topy + pix.y * PixWidth;
-        square(x, y, PixWidth);
+        p.square(x, y, PixWidth);
       });
     } else {
       this.closedSmile.forEach((pix) => {
         let x = topx + pix.x * PixWidth;
         let y = topy + pix.y * PixWidth;
-        square(x, y, PixWidth);
+        p.square(x, y, PixWidth);
       });
     }
   }
 }
+
+export {
+  Bot
+};

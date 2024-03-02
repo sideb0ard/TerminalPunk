@@ -1,3 +1,12 @@
+import {
+  Computer
+} from "./computer.js"
+
+export let Environment = {
+  "location": "/foo/bar",
+};
+
+
 let terminalWidthInChars = 60;
 const MARGIN = 30;
 
@@ -23,29 +32,80 @@ let lineBufferTemp = "";
 
 const statusHeight = 50;
 
+let map = {
+  "/": {
+    "usr": {},
+    "home": {},
+    "opt": {},
+    "bin": {},
+    "sbin": {},
+    "bin": {},
+    "etc": {},
+    "tmp": {},
+    "dev": {},
+    "var": {
+      "log": {},
+    },
+    "foo": {
+      "bar": {},
+    },
+  }
+}
+
+function isPrintable(keyCode) {
+  // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
+
+  // space
+  if (keyCode == 32)
+    return true;
+  // 0 - 9
+  if (keyCode > 47 && keyCode < 58)
+    return true;
+  // a - z
+  if (keyCode > 64 && keyCode < 91)
+    return true;
+  // numpad 
+  if (keyCode > 95 && keyCode < 112)
+    return true;
+  // semi-colon -> single quote
+  if (keyCode > 185 && keyCode < 223)
+    return true;
+
+  return false;
+}
+
+function DisplayWord(p5, startX, posY, word) {
+  for (let i = 0; i < word.length; ++i) {
+    let posX = startX + i * fontWidth;
+    p5.text(word[i], posX, posY);
+  }
+}
+
+
 class StatusBar {
-  constructor() {
+  constructor(p) {
+    this.p5 = p;
     this.credit = 107.00;
     this.os = "utf-8[solx]";
     this.height = statusHeight;
-    this.color = color(52, 66, 89, 0);
-    this.textColor = color(218, 227, 242, 0);
+    this.color = p.color(52, 66, 89, 0);
+    this.textColor = p.color(218, 227, 242, 0);
   }
-  display() {
-    if (alpha(this.color) < 256) {
-      this.color.setAlpha(alpha(this.color) + 1);
-      this.textColor.setAlpha(alpha(this.textColor) + 1);
+  Display() {
+    if (this.p5.alpha(this.color) < 256) {
+      this.color.setAlpha(this.p5.alpha(this.color) + 1);
+      this.textColor.setAlpha(this.p5.alpha(this.textColor) + 1);
     }
-    let y = height - this.height;
-    fill(this.color);
-    rect(0, y, width, height);
-    textFont("monospace", fontSize);
-    fill(this.textColor);
+    let y = this.p5.height - this.height;
+    this.p5.fill(this.color);
+    this.p5.rect(0, y, this.p5.width, this.p5.height);
+    this.p5.textFont("monospace", fontSize);
+    this.p5.fill(this.textColor);
     let displayX = 10;
     let displayY = y + 30;
-    displayWord(displayX, displayY, environment["location"]);
-    displayX = width - 230;
-    displayWord(displayX, displayY, this.os);
+    DisplayWord(this.p5, displayX, displayY, Environment["location"]);
+    displayX = this.p5.width - 230;
+    DisplayWord(this.p5, displayX, displayY, this.os);
   }
 }
 
@@ -57,15 +117,17 @@ class HistoryEntry {
 }
 
 class Cursor {
-  constructor() {
+  constructor(p, color) {
+    this.p5 = p;
     this.cntr = 0;
     this.isBlinking = 1;
+    this.color = color;
     this.nextStateChange = cursorBlinkOnTime;
   }
-  display(x, y) {
+  Display(x, y) {
     if (this.isBlinking) {
-      fill(cursorColor);
-      rect(x, y, fontWidth, 10);
+      this.p5.fill(this.color);
+      this.p5.rect(x, y, fontWidth, 10);
     }
     this.cntr++;
     if (this.cntr == this.nextStateChange) {
@@ -79,96 +141,158 @@ class Cursor {
   }
 }
 
-let lineNum = 1;
+class Terminal {
+  constructor(p) {
+    this.p5 = p;
+    this.lineNum = 1;
+    this.computer = new Computer(p);
+    this.computerColor = p.color(0, 195, 0);
+    this.cursor = new Cursor(p, p.color(0, 255, 0));
+    this.showStatusBar = false;
+    this.statusBar = new StatusBar(p);
 
-function refreshDisplay() {
-
-  let displayLenInLines = Math.floor(height / lineHeight);
-  let lineWidthChars = width / fontWidth;
-
-  let historyLinesToDisplay = Math.min(screenHistory.length,
-    displayLenInLines - 2);
-
-
-  let historyStartIdx = 0;
-  if (screenHistory.length > historyLinesToDisplay) {
-    historyStartIdx = screenHistory.length - historyLinesToDisplay;
   }
 
-  lineNum = 1;
-  displayScreenHistory(historyStartIdx, screenHistory);
+  RefreshDisplay() {
 
-  let computeEval;
-  if (computer.isComputing) {
-    computeEval = computer.print();
-  }
-  if (computeEval) {
-    displayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
-    if (!computer.isComputing) {
-      screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
+    let displayLenInLines = Math.floor(this.p5.height / lineHeight);
+    let lineWidthChars = this.p5.width / fontWidth;
+
+    let historyLinesToDisplay = Math.min(screenHistory.length,
+      displayLenInLines - 2);
+
+    let historyStartIdx = 0;
+    if (screenHistory.length > historyLinesToDisplay) {
+      historyStartIdx = screenHistory.length - historyLinesToDisplay;
     }
-  } else {
-    displayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
-    cursor.display(MARGIN + lineBuffer.length * fontWidth, (lineNum - 1) * lineHeight);
-  }
 
-  if (showStatusBar) {
-    statusBar.display();
-  }
+    this.lineNum = 1;
+    this.DisplayScreenHistory(historyStartIdx, screenHistory);
 
-}
-
-function displayScreenHistory(startIdx, history) {
-  for (let i = startIdx; i < history.length; i++) {
-    displayLine(history[i].type, history[i].content);
-  }
-}
-
-function displayWord(startX, posY, word) {
-  for (let i = 0; i < word.length; ++i) {
-    let posX = startX + i * fontWidth;
-    text(word[i], posX, posY);
-  }
-}
-
-function displayLine(type, line) {
-
-  textFont("monospace", fontSize);
-  let offset = 0;
-  if (type === SCREEN_ENTRY_USER_TYPE) {
-    fill(cursorColor);;
-    text(">", 0, lineNum * lineHeight);
-    offset = MARGIN;
-  } else {
-    fill(computerColor);;
-  }
-  if (line.length == 0) {
-    lineNum++;
-    return;
-  }
-
-
-  let maxCharsPerLine = Math.floor((width - offset) / fontWidth);
-  let charCount = 0;
-  let posX = offset;
-
-  let wurds = line.split(" ");
-  while (wurds.length) {
-    let wurd = wurds.shift();
-    if (wurd.length > (maxCharsPerLine - charCount)) {
-      lineNum++;
-      posX = offset;
-      charCount = 0;
+    let computeEval;
+    if (this.computer.isComputing) {
+      computeEval = this.computer.Print();
     }
-    let posY = lineNum * lineHeight;
-    displayWord(posX, posY, wurd);
-    posX += wurd.length * fontWidth;
-    charCount += wurd.length;
-    if (wurds.length) {
-      text(" ", posX, posY);
-      posX += fontWidth;
-      charCount++;
+
+    if (computeEval) {
+      this.DisplayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
+      if (!this.computer.isComputing) {
+        screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
+      }
+    } else {
+      this.DisplayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
+      this.cursor.Display(MARGIN + lineBuffer.length * fontWidth, (this.lineNum - 1) * lineHeight);
+    }
+
+    if (this.showStatusBar) {
+      this.statusBar.Display();
+    }
+
+  }
+
+  KeyPressed(keyCode, key) {
+    if (key == 'Backspace') {
+      if (lineBuffer.length > 0) {
+        lineBuffer = lineBuffer.substring(0, lineBuffer.length - 1);
+      }
+    }
+    if (keyCode == 76 || keyCode == 68) {
+      if (this.p5.keyIsDown(this.p5.CONTROL)) {
+        screenHistory = [];
+        return;
+      }
+    }
+    if (keyCode == 85) {
+      if (this.p5.keyIsDown(this.p5.CONTROL)) {
+        lineBuffer = "";
+        return;
+      }
+    }
+    if (isPrintable(keyCode)) {
+      lineBuffer = lineBuffer + key;
+    }
+
+    if (key == 'ArrowUp') {
+      if (historyIdx == history.length) {
+        lineBufferTmp = lineBuffer;
+      }
+      if (historyIdx > 0) {
+        lineBuffer = history[historyIdx - 1];
+        historyIdx--;
+      }
+    }
+
+    if (key == 'ArrowDown') {
+      if (historyIdx < history.length) {
+        historyIdx++;
+        if (historyIdx == history.length) {
+          lineBuffer = lineBufferTmp;
+        } else if (historyIdx < history.length) {
+          lineBuffer = history[historyIdx];
+        }
+      }
+    }
+
+    if (key == 'Enter') {
+      this.computer.Read(lineBuffer);
+      screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
+      if (lineBuffer.length > 0) {
+        history.push(lineBuffer);
+        historyIdx = history.length;
+        this.showStatusBar = true;
+      }
+      lineBuffer = "";
     }
   }
-  lineNum++;
+
+  DisplayScreenHistory(startIdx, history) {
+    for (let i = startIdx; i < history.length; i++) {
+      this.DisplayLine(history[i].type, history[i].content);
+    }
+  }
+
+  DisplayLine(type, line) {
+
+    this.p5.textFont("monospace", fontSize);
+    let offset = 0;
+    if (type === SCREEN_ENTRY_USER_TYPE) {
+      this.p5.fill(this.cursor.color);;
+      this.p5.text(">", 0, this.lineNum * lineHeight);
+      offset = MARGIN;
+    } else {
+      this.p5.fill(this.computerColor);;
+    }
+    if (line.length == 0) {
+      this.lineNum++;
+      return;
+    }
+
+    let maxCharsPerLine = Math.floor((this.p5.width - offset) / fontWidth);
+    let charCount = 0;
+    let posX = offset;
+
+    let wurds = line.split(" ");
+    while (wurds.length) {
+      let wurd = wurds.shift();
+      if (wurd.length > (maxCharsPerLine - charCount)) {
+        this.lineNum++;
+        posX = offset;
+        charCount = 0;
+      }
+      let posY = this.lineNum * lineHeight;
+      DisplayWord(this.p5, posX, posY, wurd);
+      posX += wurd.length * fontWidth;
+      charCount += wurd.length;
+      if (wurds.length) {
+        this.p5.text(" ", posX, posY);
+        posX += fontWidth;
+        charCount++;
+      }
+    }
+    this.lineNum++;
+  }
 }
+
+export {
+  Terminal,
+};
