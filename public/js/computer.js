@@ -2,9 +2,8 @@ import {
   Bot,
 } from "./bot.js";
 import {
-  Environment,
-} from "./terminal.js";
-
+  Eval,
+} from "./interpreter.js";
 
 
 const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
@@ -12,21 +11,6 @@ const intro = "Your eyes open... your mind explodes with input - you find yourse
 // const intro = "Your name is " + yourName;
 
 const drinks = ["whiskey", "beer", "wine", "coke", "oil", "tea", "coffee", "piss", "water"];
-
-function Eval(line) {
-  console.log("Eval this:", line);
-  var words = line.split(" ");
-  if (words.length == 1) {
-    if (words[0] === "pwd")
-      return Environment["location"];
-  }
-  if (words.length == 2) {
-    if (words[0] === "cd") {
-      ChDir(words[1]);
-    }
-  }
-  return "computer says no";
-};
 
 class Computer {
   constructor(p) {

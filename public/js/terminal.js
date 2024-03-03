@@ -7,15 +7,20 @@ export let Environment = {
 };
 
 
-let terminalWidthInChars = 60;
-const MARGIN = 30;
+const terminalWidthInChars = 60;
+// const MARGIN = 30;
 
 let currentLine = 1;
 let lineHeight = 40;
 let fontSize = 28;
 let fontWidth = 20;
 
+let leftMargin = fontWidth * 1.5;
+let rightMargin = fontWidth;
+let bottomMargin = lineHeight * 2;
+
 let cursorX = 0;
+const shellIcon = ">";
 
 let cursorBlinkOnTime = 40;
 let cursorBlinkOffTime = 20;
@@ -181,7 +186,7 @@ class Terminal {
       }
     } else {
       this.DisplayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
-      this.cursor.Display(MARGIN + lineBuffer.length * fontWidth, (this.lineNum - 1) * lineHeight);
+      this.cursor.Display(leftMargin + (shellIcon.length + lineBuffer.length) * fontWidth, (this.lineNum - 1) * lineHeight);
     }
 
     if (this.showStatusBar) {
@@ -254,11 +259,9 @@ class Terminal {
   DisplayLine(type, line) {
 
     this.p5.textFont("monospace", fontSize);
-    let offset = 0;
     if (type === SCREEN_ENTRY_USER_TYPE) {
       this.p5.fill(this.cursor.color);;
-      this.p5.text(">", 0, this.lineNum * lineHeight);
-      offset = MARGIN;
+      this.p5.text(shellIcon, leftMargin, this.lineNum * lineHeight);
     } else {
       this.p5.fill(this.computerColor);;
     }
@@ -267,16 +270,17 @@ class Terminal {
       return;
     }
 
-    let maxCharsPerLine = Math.floor((this.p5.width - offset) / fontWidth);
+    let maxCharsPerLine = Math.floor((this.p5.width - leftMargin - rightMargin) / fontWidth);
     let charCount = 0;
-    let posX = offset;
+    let posX = leftMargin;
+    if (type === SCREEN_ENTRY_USER_TYPE) posX += fontWidth;
 
     let wurds = line.split(" ");
     while (wurds.length) {
       let wurd = wurds.shift();
       if (wurd.length > (maxCharsPerLine - charCount)) {
         this.lineNum++;
-        posX = offset;
+        posX = leftMargin;
         charCount = 0;
       }
       let posY = this.lineNum * lineHeight;
