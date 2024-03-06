@@ -17,6 +17,7 @@ export const MULTIPLY = "*";
 export const DIVIDE = "/";
 
 export const SEMICOLON = ";";
+export const COMMA = ",";
 
 export const LPAREN = "(";
 export const RPAREN = ")";
