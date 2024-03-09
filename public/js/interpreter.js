@@ -6,19 +6,28 @@ import {
   Lexer,
 } from "./interpreter/lexer.js";
 
+import {
+  Parser,
+} from "./interpreter/parser.js";
+
 import * as token from "./interpreter/tokens.js";
 
 function Eval(line) {
   console.log("Eval this:", line);
 
   let lex = new Lexer(line);
+  let parser = new Parser(lex);
 
-  let tok = lex.NextToken();
-  console.log(tok);
-  while (tok.token_type !== token.EOF) {
-    tok = lex.NextToken();
-    console.log(tok);
-  }
+  let prog = parser.ParseProgram();
+  prog.Print();
+
+
+  // let tok = lex.NextToken();
+  // console.log(tok);
+  // while (tok.token_type !== token.EOF) {
+  //   tok = lex.NextToken();
+  //   console.log(tok);
+  // }
 
   // var words = line.split(" ");
   // if (words.length == 1) {

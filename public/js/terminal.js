@@ -6,7 +6,6 @@ export let Environment = {
   "location": "/foo/bar",
 };
 
-
 const terminalWidthInChars = 60;
 // const MARGIN = 30;
 
@@ -33,7 +32,7 @@ let history = [];
 let historyIdx = 0;
 
 let lineBuffer = "";
-let lineBufferTemp = "";
+let lineBufferTmp = "";
 
 const statusHeight = 50;
 
