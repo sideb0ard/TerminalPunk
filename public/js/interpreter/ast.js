@@ -33,14 +33,50 @@ class LetStatement extends Statement {
     this.value_;
   }
   String() {
-    console.log("let ", this.name_, " = ", this.value_);
+    console.log(this.token_.literal + " " + this.name_, " = ", this.value_);
   }
 }
+
+class ReturnStatement extends Statement {
+  constructor(token) {
+    super(token);
+    this.return_value_;
+  }
+
+  String() {
+    console.log(this.token_.literal + " " + this.return_value_);
+  }
+}
+
+class ExpressionStatement extends Statement {
+  constructor(token) {
+    super(token);
+    this.expression_;
+  }
+
+  String() {
+    console.log(this.token_.literal + " " + this.expression_);
+  }
+}
+
 
 class Identifier extends Expression {
   constructor(token, value) {
     super(token);
     this.value_ = value;
+  }
+  String() {
+    console.log(this.token_.literal + " " + this.value_);
+  }
+}
+
+class IntegerLiteral extends Expression {
+  constructor(token, value) {
+    super(token);
+    this.value_ = value;
+  }
+  String() {
+    console.log(this.token_.literal + " " + this.value_);
   }
 }
 
@@ -50,10 +86,10 @@ class Root {
     this.statements_ = [];
   }
 
-  Print() {
+  String() {
     this.statements_.forEach((s) => {
-      console.log("STTEMENT:", s);
-      //s.String();
+      //console.log("STTEMENT:");
+      s.String();
     });
   }
 }
@@ -62,7 +98,10 @@ export {
   Root,
   Identifier,
   LetStatement,
+  ReturnStatement,
   Expression,
+  ExpressionStatement,
   Statement,
-  Node
+  Node,
+  IntegerLiteral
 };

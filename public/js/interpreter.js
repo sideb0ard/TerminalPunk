@@ -19,26 +19,8 @@ function Eval(line) {
   let parser = new Parser(lex);
 
   let prog = parser.ParseProgram();
-  prog.Print();
-
-
-  // let tok = lex.NextToken();
-  // console.log(tok);
-  // while (tok.token_type !== token.EOF) {
-  //   tok = lex.NextToken();
-  //   console.log(tok);
-  // }
-
-  // var words = line.split(" ");
-  // if (words.length == 1) {
-  //   if (words[0] === "pwd")
-  //     return Environment["location"];
-  // }
-  // if (words.length == 2) {
-  //   if (words[0] === "cd") {
-  //     ChDir(words[1]);
-  //   }
-  // }
+  console.log("PROGPROG:", prog);
+  prog.String();
 
   return "computer says no";
 };

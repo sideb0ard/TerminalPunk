@@ -34,6 +34,7 @@ export const LS = "ls";
 export const WHO = "who";
 export const PS = "ps";
 export const HELP = "help";
+export const RETURN = "return";
 
 export const KEYWORDS = new Map([
   ["let", LET],
@@ -42,5 +43,6 @@ export const KEYWORDS = new Map([
   ["ls", LS],
   ["who", WHO],
   ["ps", PS],
+  ["return", RETURN],
   ["help", HELP],
 ]);
