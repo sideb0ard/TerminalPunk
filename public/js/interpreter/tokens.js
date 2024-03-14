@@ -9,12 +9,20 @@ export const ILLEGAL = "ILLEGAL";
 export const EOF = "EOF";
 export const IDENT = "IDENT";
 export const INT = "INT";
+export const STRING = "STRING";
 
 export const ASSIGN = "=";
 export const ADD = "+";
-export const SUBTRACT = "-";
-export const MULTIPLY = "*";
-export const DIVIDE = "/";
+export const MINUS = "-";
+export const BANG = "!";
+export const NOT = "~";
+export const ASTERISK = "*";
+export const SLASH = "/";
+
+export const LT = "<";
+export const GT = "<";
+export const EQ = "==";
+export const NOT_EQ = "!=";
 
 export const SEMICOLON = ";";
 export const COMMA = ",";

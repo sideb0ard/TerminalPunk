@@ -46,13 +46,26 @@ class Lexer {
     let tok;
     switch (this.current_char) {
       case "=":
-        tok = new token.Token(token.ASSIGN, this.current_char);
+        if (PeekChar() == '=') {
+          ReadChar();
+          tok = new token.Token(token.EQ, "==");
+        } else {
+          tok = new token.Token(token.ASSIGN, this.current_char);
+        }
+        break;
+      case "!":
+        if (PeekChar() == '=') {
+          ReadChar();
+          tok = new token.Token(token.NOT_EQ, "!=");
+        } else {
+          tok = new token.Token(token.BANG, this.current_char);
+        }
         break;
       case "+":
         tok = new token.Token(token.ADD, this.current_char);
         break;
       case "-":
-        tok = new token.Token(token.SUBTRACT, this.current_char);
+        tok = new token.Token(token.MINUS, this.current_char);
         break;
       case "*":
         tok = new token.Token(token.MULTIPLY, this.current_char);

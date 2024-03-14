@@ -80,6 +80,29 @@ class IntegerLiteral extends Expression {
   }
 }
 
+class PrefixExpression extends Expression {
+  constructor(token, operator) {
+    super(token);
+    this.operator_ = operator;
+    this.right_;
+  }
+  String() {
+    console.log("(" + this.operator_ + " " + this.right_.String() + ")");
+  }
+}
+
+class InfixExpression extends Expression {
+  constructor(token, operator, left) {
+    super(token);
+    this.operator_ = operator;
+    this.left_ = left;
+    this.right_;
+  }
+  String() {
+    console.log("(" + this.left_.String() + " " + this.operator_ + " " + this.right_.String() + ")");
+  }
+}
+
 /////////////////////////////////////////////////////////////////////
 class Root {
   constructor() {
@@ -103,5 +126,6 @@ export {
   ExpressionStatement,
   Statement,
   Node,
-  IntegerLiteral
+  IntegerLiteral,
+  PrefixExpression,
 };
