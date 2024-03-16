@@ -20,7 +20,7 @@ precedences.set(token.EQ, Precedence.EQUALS)
 precedences.set(token.NOT_EQ, Precedence.EQUALS)
 precedences.set(token.LT, Precedence.LESSGREATER)
 precedences.set(token.GT, Precedence.LESSGREATER)
-precedences.set(token.PLUS, Precedence.SUM)
+precedences.set(token.ADD, Precedence.SUM)
 precedences.set(token.MINUS, Precedence.SUM)
 precedences.set(token.SLASH, Precedence.PRODUCT)
 precedences.set(token.ASTERISK, Precedence.PRODUCT)
@@ -40,8 +40,11 @@ export class Parser {
     this.RegisterPrefixFn(token.INT, this.ParseIntegerLiteral.bind(this));
     this.RegisterPrefixFn(token.BANG, this.ParsePrefixExpression.bind(this));
     this.RegisterPrefixFn(token.MINUS, this.ParsePrefixExpression.bind(this));
+    this.RegisterPrefixFn(token.TRUE, this.ParseBoolean.bind(this));
+    this.RegisterPrefixFn(token.FALSE, this.ParseBoolean.bind(this));
+    this.RegisterPrefixFn(token.LPAREN, this.ParseGroupedExpression.bind(this));
 
-    this.RegisterInfixFn(token.PLUS, this.ParseInfixExpression.bind(this));
+    this.RegisterInfixFn(token.ADD, this.ParseInfixExpression.bind(this));
     this.RegisterInfixFn(token.MINUS, this.ParseInfixExpression.bind(this));
     this.RegisterInfixFn(token.SLASH, this.ParseInfixExpression.bind(this));
     this.RegisterInfixFn(token.ASTERISK, this.ParseInfixExpression.bind(this));
@@ -69,13 +72,12 @@ export class Parser {
 
   //// ENTRY PROGRAM ///////////////////////////////////////////////////////////////////
   ParseProgram() {
-    console.log("YO PARSE MY ARSE!");
-    let program = new ast.Root();
+    let program = new ast.Program(token.PROGRAM);
     while (!this.CurTokenIs(token.EOF)) {
       let stmt = this.ParseStatement();
-      console.log("GOT 4RM PARSE STATEMENT:", stmt);
       if (stmt) {
         program.statements_.push(stmt);
+        stmt.String();
       }
       this.NextToken();
     }
@@ -154,6 +156,7 @@ export class Parser {
     console.log("LOOKING FOR PRECEDENCE:", prec, "TOKEN:", this.cur_token_);
     let prefix = this.prefix_parse_fns_[this.cur_token_.token_type];
     if (!prefix) {
+      console.log("PREXZ:", this.prefix_parse_fns_);
       console.log("Nah, nae prefix:", prefix, " returning null");
       return;
     }
@@ -161,10 +164,17 @@ export class Parser {
     console.log("PREFIXFN:", prefix);
 
     let left_exp = prefix();
+    console.log("LEFT EXPRESSION:", left_exp);
 
+    console.log("LETS LOOK FOR AN INFIX OP.. PREC is ", prec, " PEEK PRECEDENC IS", this.PeekPrecedence());
     while (!this.PeekTokenIs(token.SEMICOLON) && prec < this.PeekPrecedence()) {
+      console.log("LOOKINF FOR INFIX FUNC for token_type:", this.peek_token_.token_type, " in ", this.infix_parse_fns_);
       let infix = this.infix_parse_fns_[this.peek_token_.token_type];
-      if (!infix) return left_exp;
+      if (!infix) {
+        console.log("NAE INFIX");
+        return left_exp;
+      }
+      console.log("GOT INFIX");
       this.NextToken();
       left_exp = infix(left_exp);
     }
@@ -184,17 +194,30 @@ export class Parser {
   ParsePrefixExpression() {
     let exp = new ast.PrefixExpression(this.cur_token_, this.cur_token_.literal);
     this.NextToken();
-    exp.Right = this.ParseExpression(Precedence.PREFIX);
+    exp.right_ = this.ParseExpression(Precedence.PREFIX);
     return exp;
   }
 
   ParseInfixExpression(left_expression) {
     let exp = new ast.InfixExpression(this.cur_token_, this.cur_token_.literal, left_expression);
-    let precedence = CurPrecedence();
+    let precedence = this.CurPrecedence();
     this.NextToken();
-    exp.Right = this.ParseExpression(precedence);
+    exp.right_ = this.ParseExpression(precedence);
     return exp;
   }
+
+  ParseBoolean(value) {
+    return new ast.Boolean(this.cur_token_, this.PeekTokenIs(token.TRUE));
+  }
+
+  ParseGroupedExpression(left_expression) {
+    let exp = this.ParseExpression(Precedence.LOWEST);
+    if (!this.ExpectPeek(token.RPAREN)) {
+      return null;
+    }
+    return exp;
+  }
+
 
   ///// UTILS ////////////////////////////////////////////////////////////////////////
 
@@ -222,10 +245,15 @@ export class Parser {
     this.errors_.push(e);
   }
 
-  PeekPrecedence(token_type) {
+  PeekPrecedence() {
+    let token_type = this.peek_token_.token_type;
+    console.log("YO PEEK PRECEDENCE - looking for ", token_type, " ", precedences);
     if (precedences.has(token_type)) {
-      return precedences[token_type];
+
+      console.log("IN MAP!", precedences.get(token_type));
+      return precedences.get(token_type);
     }
+    console.log("NTO IN MAP - RETUN LOWESET");
     return Precedence.LOWEST;
   }
 

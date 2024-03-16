@@ -68,7 +68,7 @@ class Lexer {
         tok = new token.Token(token.MINUS, this.current_char);
         break;
       case "*":
-        tok = new token.Token(token.MULTIPLY, this.current_char);
+        tok = new token.Token(token.ASTERISK, this.current_char);
         break;
       case ";":
         tok = new token.Token(token.SEMICOLON, this.current_char);

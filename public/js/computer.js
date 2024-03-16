@@ -2,7 +2,7 @@ import {
   Bot,
 } from "./bot.js";
 import {
-  Eval,
+  Interpret,
 } from "./interpreter.js";
 
 
@@ -32,7 +32,7 @@ class Computer {
     this.isComputing = true;
     this.bot.isTalking = true;
     if (this.inputLine.length > 0) {
-      this.responseLine = Eval(this.inputLine);
+      this.responseLine = Interpret(this.inputLine);
     } else {
       this.responseLine = "";
     }

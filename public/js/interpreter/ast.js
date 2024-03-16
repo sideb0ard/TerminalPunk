@@ -12,6 +12,9 @@ class Node {
   String() {
     console.log("Default Node Print");
   }
+  Type() {
+    return
+  }
 }
 
 class Statement extends Node {
@@ -55,7 +58,7 @@ class ExpressionStatement extends Statement {
   }
 
   String() {
-    console.log(this.token_.literal + " " + this.expression_);
+    console.log(this.token_.literal + " " + this.expression_.String());
   }
 }
 
@@ -99,13 +102,25 @@ class InfixExpression extends Expression {
     this.right_;
   }
   String() {
-    console.log("(" + this.left_.String() + " " + this.operator_ + " " + this.right_.String() + ")");
+    //console.log("(" + this.left_.String() + " " + this.operator_ + " " + this.right_.String() + ")");
+    console.log("(" + this.left_ + " " + this.operator_ + " " + this.right_ + ")");
+  }
+}
+
+class Boolean extends Expression {
+  constructor(token, value) {
+    super(token);
+    this.value_ = value;
+  }
+  String() {
+    console.log("bool:" + this.value_);
   }
 }
 
 /////////////////////////////////////////////////////////////////////
-class Root {
-  constructor() {
+class Program extends Node {
+  constructor(token) {
+    super(token);
     this.statements_ = [];
   }
 
@@ -118,8 +133,9 @@ class Root {
 }
 
 export {
-  Root,
+  Program,
   Identifier,
+  Boolean,
   LetStatement,
   ReturnStatement,
   Expression,
@@ -127,5 +143,6 @@ export {
   Statement,
   Node,
   IntegerLiteral,
+  InfixExpression,
   PrefixExpression,
 };

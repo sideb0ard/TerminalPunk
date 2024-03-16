@@ -5,6 +5,7 @@ export class Token {
   }
 }
 
+export const PROGRAM = "PROGRAM";
 export const ILLEGAL = "ILLEGAL";
 export const EOF = "EOF";
 export const IDENT = "IDENT";
@@ -20,7 +21,7 @@ export const ASTERISK = "*";
 export const SLASH = "/";
 
 export const LT = "<";
-export const GT = "<";
+export const GT = ">";
 export const EQ = "==";
 export const NOT_EQ = "!=";
 
@@ -53,4 +54,6 @@ export const KEYWORDS = new Map([
   ["ps", PS],
   ["return", RETURN],
   ["help", HELP],
+  ["true", TRUE],
+  ["false", FALSE],
 ]);
