@@ -31,10 +31,11 @@ class Computer {
     this.inputLine = inputLine.slice();
     this.isComputing = true;
     this.bot.isTalking = true;
+    this.responseLine = "";
     if (this.inputLine.length > 0) {
+      console.log("READGOT:", this.inputLine);
       this.responseLine = Interpret(this.inputLine);
-    } else {
-      this.responseLine = "";
+      console.log("READGOT A4ft Interpret:", this.responseLine);
     }
     this.responseIdx = 0;
   }
@@ -56,7 +57,11 @@ class Computer {
         this.nextFrameIncr = this.p5.frameCount + this.p5.random(3);
       }
     }
-    return this.responseLine.slice(0, this.responseIdx);
+    if (this.responseLine) {
+      return this.responseLine.slice(0, this.responseIdx);
+    } else {
+      return "";
+    }
   }
 }
 

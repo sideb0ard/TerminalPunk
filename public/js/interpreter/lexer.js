@@ -46,15 +46,15 @@ class Lexer {
     let tok;
     switch (this.current_char) {
       case "=":
-        if (PeekChar() == '=') {
-          ReadChar();
+        if (this.PeekChar() == '=') {
+          this.ReadChar();
           tok = new token.Token(token.EQ, "==");
         } else {
           tok = new token.Token(token.ASSIGN, this.current_char);
         }
         break;
       case "!":
-        if (PeekChar() == '=') {
+        if (this.PeekChar() == '=') {
           ReadChar();
           tok = new token.Token(token.NOT_EQ, "!=");
         } else {
@@ -93,7 +93,7 @@ class Lexer {
           console.log("NOT A LETTER:", this.PeekChar());
           tok = new token.Token(token.DIVIDE, this.current_char);
           break;
-        }
+        } // else fall through and try identifier
       default:
         if (IsLetter(this.current_char)) {
           let literal = this.ReadIdentifier();

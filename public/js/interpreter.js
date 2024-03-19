@@ -26,8 +26,7 @@ function Interpret(line) {
   console.log("PARSE FINISHED:", prog);
 
   let resp = Eval(prog);
-  console.log("RESP::", resp);
-  return resp;
+  return resp.Inspect();
 
   // return "computer says no";
 };

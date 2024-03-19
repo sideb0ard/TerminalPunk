@@ -12,9 +12,6 @@ class Node {
   String() {
     console.log("Default Node Print");
   }
-  Type() {
-    return
-  }
 }
 
 class Statement extends Node {
@@ -48,6 +45,29 @@ class ReturnStatement extends Statement {
 
   String() {
     console.log(this.token_.literal + " " + this.return_value_);
+  }
+}
+
+class LsStatement extends Statement {
+  constructor(token) {
+    super(token);
+    this.target_;
+  }
+
+  String() {
+    console.log(this.token_.literal + " " + this.target_);
+  }
+}
+
+
+class CdStatement extends Statement {
+  constructor(token) {
+    super(token);
+    this.dir_;
+  }
+
+  String() {
+    console.log(this.token_.literal + " " + this.dir_);
   }
 }
 
@@ -103,17 +123,18 @@ class InfixExpression extends Expression {
   }
   String() {
     //console.log("(" + this.left_.String() + " " + this.operator_ + " " + this.right_.String() + ")");
-    console.log("(" + this.left_ + " " + this.operator_ + " " + this.right_ + ")");
+    console.log("(" + this.left_.String() + " " + this.operator_ + " " + this.right_.String() + ")");
   }
 }
 
 class Boolean extends Expression {
   constructor(token, value) {
+    console.log("YO BOOLEN CONTRES:", token, value);
     super(token);
     this.value_ = value;
   }
   String() {
-    console.log("bool:" + this.value_);
+    console.log("bool:" + this.value_.toString());
   }
 }
 
@@ -133,16 +154,18 @@ class Program extends Node {
 }
 
 export {
-  Program,
-  Identifier,
   Boolean,
-  LetStatement,
-  ReturnStatement,
+  CdStatement,
   Expression,
   ExpressionStatement,
-  Statement,
-  Node,
-  IntegerLiteral,
+  Identifier,
   InfixExpression,
+  IntegerLiteral,
+  LetStatement,
+  LsStatement,
+  Node,
   PrefixExpression,
+  Program,
+  ReturnStatement,
+  Statement,
 };

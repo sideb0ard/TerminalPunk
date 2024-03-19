@@ -92,6 +92,10 @@ export class Parser {
         return this.ParseLetStatement();
       case token.RETURN:
         return this.ParseReturnStatement();
+      case token.CD:
+        return this.ParseCdStatement();
+      case token.LS:
+        return this.ParseLsStatement();
       default:
         return this.ParseExpressionStatement();
     }
@@ -134,6 +138,39 @@ export class Parser {
     }
     return stmt;
   }
+
+  ParseCdStatement() {
+    let stmt = new ast.CdStatement(this.cur_token_);
+    this.NextToken();
+
+    console.log(this.cur_token_);
+
+    while (!this.CurTokenIs(token.SEMICOLON)) {
+      if (this.CurTokenIs(token.EOF)) {
+        break;
+      }
+      console.log("DISCARDME:", this.cur_token_);
+      this.NextToken();
+    }
+    return stmt;
+  }
+
+  ParseLsStatement() {
+    let stmt = new ast.LsStatement(this.cur_token_);
+    this.NextToken();
+
+    console.log(this.cur_token_);
+
+    while (!this.CurTokenIs(token.SEMICOLON)) {
+      if (this.CurTokenIs(token.EOF)) {
+        break;
+      }
+      console.log("DISCARDME:", this.cur_token_);
+      this.NextToken();
+    }
+    return stmt;
+  }
+
 
   //// EXPRESSIONS ///////////////////////////////////////////////////////////////////
 
@@ -206,8 +243,9 @@ export class Parser {
     return exp;
   }
 
-  ParseBoolean(value) {
-    return new ast.Boolean(this.cur_token_, this.PeekTokenIs(token.TRUE));
+  ParseBoolean() {
+    console.log("YO PARSE BOOLEAN - val:", this.cur_token_, this);
+    return new ast.Boolean(this.cur_token_, this.CurTokenIs(token.TRUE));
   }
 
   ParseGroupedExpression(left_expression) {
@@ -222,12 +260,13 @@ export class Parser {
   ///// UTILS ////////////////////////////////////////////////////////////////////////
 
   CurTokenIs(token_type) {
-    if (this.cur_token_.token_type === token_type) return true;
+    if (this.cur_token_.token_type == token_type) return true;
     return false;
   }
 
   PeekTokenIs(token_type) {
-    if (this.peek_token_.token_type === token_type) return true;
+    console.log("YO PEEK - for ", token_type, " ppek tok", this.peek_token_.token_type);
+    if (this.peek_token_.token_type == token_type) return true;
     return false;
   }
 
