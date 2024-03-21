@@ -9,7 +9,7 @@ export const PROGRAM = "PROGRAM";
 export const ILLEGAL = "ILLEGAL";
 export const EOF = "EOF";
 export const IDENT = "IDENT";
-export const INT = "INT";
+export const NUMBER = "NUMBER";
 export const STRING = "STRING";
 
 export const ASSIGN = "=";
@@ -27,6 +27,7 @@ export const NOT_EQ = "!=";
 
 export const SEMICOLON = ";";
 export const COMMA = ",";
+export const PERIOD = ".";
 
 export const LPAREN = "(";
 export const RPAREN = ")";

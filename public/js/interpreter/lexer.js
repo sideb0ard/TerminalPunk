@@ -91,7 +91,7 @@ class Lexer {
       case "/":
         if (!IsLetter(this.PeekChar())) {
           console.log("NOT A LETTER:", this.PeekChar());
-          tok = new token.Token(token.DIVIDE, this.current_char);
+          tok = new token.Token(token.SLASH, this.current_char);
           break;
         } // else fall through and try identifier
       default:
@@ -101,7 +101,7 @@ class Lexer {
           return tok;
         } else if (IsDigit(this.current_char)) {
           let num = this.ReadNumber()
-          tok = new token.Token(token.INT, num);
+          tok = new token.Token(token.NUMBER, num);
           return tok;
         } else {
           tok = new token.Token(token.ILLEGAL, this.current_char);
@@ -120,7 +120,7 @@ class Lexer {
   ReadNumber() {
     console.log("READNUM:");
     let pos = this.current_position;
-    while (IsDigit(this.current_char)) this.ReadChar();
+    while (IsDigit(this.current_char) || this.current_char == '.') this.ReadChar();
     return this.input.substring(pos, this.current_position);
   }
 

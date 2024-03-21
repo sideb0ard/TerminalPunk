@@ -93,10 +93,10 @@ class Identifier extends Expression {
   }
 }
 
-class IntegerLiteral extends Expression {
+class NumberLiteral extends Expression {
   constructor(token, value) {
     super(token);
-    this.value_ = value;
+    this.value_ = Number(value);
   }
   String() {
     console.log(this.token_.literal + " " + this.value_);
@@ -160,7 +160,7 @@ export {
   ExpressionStatement,
   Identifier,
   InfixExpression,
-  IntegerLiteral,
+  NumberLiteral,
   LetStatement,
   LsStatement,
   Node,

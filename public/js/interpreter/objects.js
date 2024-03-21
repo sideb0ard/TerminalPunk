@@ -1,4 +1,4 @@
-export const INTEGER_OBJECT = "INTEGER";
+export const NUMBER_OBJECT = "NUMBER";
 export const BOOLEAN_OBJECT = "BOOLEAN";
 export const NULL_OBJECT = "NULL";
 
@@ -14,9 +14,9 @@ class Pobject {
   }
 }
 
-class Integer extends Pobject {
+class Number extends Pobject {
   constructor(value) {
-    super(INTEGER_OBJECT);
+    super(NUMBER_OBJECT);
     this.value_ = value;
   }
   Inspect() {
@@ -45,6 +45,6 @@ class Null extends Pobject {
 
 export {
   Boolean,
-  Integer,
+  Number,
   Null,
 }

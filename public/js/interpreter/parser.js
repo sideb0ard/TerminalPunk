@@ -37,7 +37,7 @@ export class Parser {
     this.infix_parse_fns_ = {}
 
     this.RegisterPrefixFn(token.IDENT, this.ParseIdentifier.bind(this));
-    this.RegisterPrefixFn(token.INT, this.ParseIntegerLiteral.bind(this));
+    this.RegisterPrefixFn(token.NUMBER, this.ParseNumberLiteral.bind(this));
     this.RegisterPrefixFn(token.BANG, this.ParsePrefixExpression.bind(this));
     this.RegisterPrefixFn(token.MINUS, this.ParsePrefixExpression.bind(this));
     this.RegisterPrefixFn(token.TRUE, this.ParseBoolean.bind(this));
@@ -223,9 +223,9 @@ export class Parser {
     return new ast.Identifier(this.cur_token_, this.cur_token_.literal);
   }
 
-  ParseIntegerLiteral() {
+  ParseNumberLiteral() {
     console.log("YOYO", this);
-    return new ast.IntegerLiteral(this.cur_token_, this.cur_token_.literal);
+    return new ast.NumberLiteral(this.cur_token_, this.cur_token_.literal);
   }
 
   ParsePrefixExpression() {

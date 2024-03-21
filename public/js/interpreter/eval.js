@@ -9,9 +9,9 @@ function Eval(node) {
   } else if (node instanceof ast.ExpressionStatement) {
     console.log("INSTACNE OF EXPRERSSSION STATEMENT");
     return Eval(node.expression_);
-  } else if (node instanceof ast.IntegerLiteral) {
-    console.log("INSTACNE OF INTEGRLITEALL", node);
-    return new pobject.Integer(node.value_);
+  } else if (node instanceof ast.NumberLiteral) {
+    console.log("INSTACNE OF NUMBER", node);
+    return new pobject.Number(node.value_);
   } else if (node instanceof ast.Boolean) {
     console.log("INSTACNE OF BOOLEAN");
     return new pobject.Boolean(node.value_);
@@ -25,6 +25,11 @@ function Eval(node) {
     console.log("INSTACNE OF PREFGIX");
     let right = Eval(node.right_);
     return EvalPrefixExpression(node.operator_, right)
+  } else if (node instanceof ast.InfixExpression) {
+    console.log("INSTACNE OF INFX");
+    let left = Eval(node.left_);
+    let right = Eval(node.right_);
+    return EvalInfixExpression(node.operator_, left, right)
   } else {
     console.log("INSTACNE OF MNOTHING I KNOW ABOUT");
     return new pobject.Null();
@@ -49,10 +54,19 @@ function EvalPrefixExpression(operator, right) {
   switch (operator) {
     case '!':
       return EvalBangOperator(right);
-      break;
     case '-':
-      return EvalBangOperator(right);
-      break;
+      return EvalMinusOperator(right);
+    default:
+      return new pobject.Null();
+  }
+}
+
+function EvalInfixExpression(operator, left, right) {
+  console.log("EVAL INFIXXXX:", operator, left, right);
+  if (left.type_ == pobject.NUMBER_OBJECT && right.type_ == pobject.NUMBER_OBJECT) {
+    return EvalNumberInfixExpression(operator, left, right);
+  } else {
+    return new pobject.Null();
   }
 }
 
@@ -70,6 +84,31 @@ function EvalBangOperator(right) {
     return new pobject.Boolean(false);
   }
 }
+
+function EvalMinusOperator(right) {
+  console.log("EVAL MINUS!", right);
+  if (right.type_ == pobject.NUMBER_OBJECT) {
+    return new pobject.Number(-right.value_);
+  } else {
+    return new pobject.Null();
+  }
+}
+
+function EvalNumberInfixExpression(operator, left, right) {
+  switch (operator) {
+    case '+':
+      return new pobject.Number(left.value_ + right.value_);
+    case '-':
+      return new pobject.Number(left.value_ - right.value_);
+    case '*':
+      return new pobject.Number(left.value_ * right.value_);
+    case '/':
+      return new pobject.Number(left.value_ / right.value_);
+    default:
+      return new pobject.Null();
+  }
+}
+
 
 export {
   Eval,
