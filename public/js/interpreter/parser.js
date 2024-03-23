@@ -297,9 +297,12 @@ export class Parser {
   }
 
   CurPrecedence() {
+    console.log("CurPrec!");
     if (precedences.has(this.cur_token_.token_type)) {
-      return precedences[this.cur_token_.token_type];
+      console.log("FOUND IN PRCEDENCS - RETURNING:", precedences.get(this.cur_token_.token_type));
+      return precedences.get(this.cur_token_.token_type);
     }
+    console.log("NOT FOUND IN PRCEDENCS - RETURNING:", Precedence.LOWEST);
     return Precedence.LOWEST;
   }
 }
