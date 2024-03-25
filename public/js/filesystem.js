@@ -2,6 +2,10 @@ import {
   Directory,
 } from './directory.js';
 
+import {
+  Environment,
+} from './environment.js';
+
 export class FileSystem {
   constructor() {
     console.log("YO NEW FILE SYSTEM YO!");
@@ -11,17 +15,36 @@ export class FileSystem {
     this.root.AddDirectory(foo);
   }
 
-  ListContents() {
-    return this.root.ListContents();
-    // let dirHandle = GetHandle(dir);
-    //if (dirHandle) {
-    //  return dirHandle.ListContents();
-    //}
-    //return null;
+  ListContents(dirname) {
+    let full_path = dirname.startsWith('/') ? dirname : Environment.pwd + dirname;
+    console.log("FS LIST CONTENTS _ FULL PATH:", full_path);
+    let dirHandle = this.GetHandle(full_path);
+    if (dirHandle) {
+      return dirHandle.ListContents();
+    }
+    return null;
   }
 
-  GetHandle(dirname) {
-    return "/foo/bar";
+  GetHandle(path) {
+    console.log(path);
+    let startdir = Environment.pwd;
+    if (!path.startsWith('/')) {
+      return null;
+    }
+    if (path.length == 1) {
+      return this.root;
+    }
+    let curdir = this.root;
+    console.log(curdir);
+    path = path.slice(1);
+    const dirnames = path.split('/');
+    console.log(dirnames);
+    dirnames.forEach((d) => {
+      if (curdir.HasSubDirectory(d)) {
+        curdir = d;
+      } else {
+        return null;
+      }
+    });
   }
-
 }

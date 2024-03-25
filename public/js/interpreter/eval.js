@@ -21,12 +21,24 @@ function Eval(env, node) {
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
     console.log("INSTACNE OF LS");
-    //if (Environment.fs) {
-    //  console.log("I HAZ A FILESYSTEM");
-    //  let str = new pobject.String();
-    //  str.Append(Environment.fs.ListContents());
-    //  return str;
-    //}
+    if (env && env.fs) {
+      console.log("I HAZ A FILESYSTEM");
+      let str = new pobject.String();
+      let target = node.target_ ? node.target_.value_ : "/";
+      console.log("TARRGET:", target);
+      str.Append(env.fs.ListContents(target));
+      console.log("STRT TO RETURN:", str);
+      return str;
+    }
+    return new pobject.Null();
+  } else if (node instanceof ast.PwdStatement) {
+    console.log("INSTACNE OF PWD");
+    if (env && env.pwd) {
+      console.log("I HAZ A PWD");
+      let str = new pobject.String();
+      str.Append(env.pwd);
+      return str;
+    }
     return new pobject.Null();
   } else if (node instanceof ast.CdStatement) {
     console.log("INSTACNE OF CD");

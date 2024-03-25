@@ -13,10 +13,17 @@ export class Directory {
     this.subdirs.push(dir);
   }
 
+  HasSubDirectory(dirname) {
+    this.subdirs.forEach((d) => {
+      if (d.Name() === dirname) return true;
+    });
+    return false;
+  }
+
   ListContents() {
     // let reply = [".", ".."];
     let reply = [];
-    this.subDirs.forEach((sd) => {
+    this.subdirs.forEach((sd) => {
       reply.push(sd.name);
       //  reply.push(sd.ListContents());
     });

@@ -61,4 +61,5 @@ export {
   Boolean,
   Number,
   Null,
+  String,
 }

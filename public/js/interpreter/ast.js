@@ -174,6 +174,7 @@ export {
   NumberLiteral,
   LetStatement,
   LsStatement,
+  PwdStatement,
   Node,
   PrefixExpression,
   Program,

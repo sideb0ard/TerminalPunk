@@ -143,49 +143,47 @@ export class Parser {
 
   ParseCdStatement() {
     let stmt = new ast.CdStatement(this.cur_token_);
-    this.NextToken();
-
     console.log(this.cur_token_);
+    if (this.PeekTokenIs(token.IDENT)) {
+      this.NextToken();
+      stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
+    }
 
-    while (!this.CurTokenIs(token.SEMICOLON)) {
-      if (this.CurTokenIs(token.EOF)) {
-        break;
-      }
-      console.log("DISCARDME:", this.cur_token_);
+    if (this.CurTokenIs(token.SEMICOLON)) {
       this.NextToken();
     }
+
     return stmt;
   }
 
   ParseLsStatement() {
     let stmt = new ast.LsStatement(this.cur_token_);
-    this.NextToken();
 
     console.log(this.cur_token_);
+    if (this.PeekTokenIs(token.IDENT)) {
+      this.NextToken();
+      stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
+    }
 
-    while (!this.CurTokenIs(token.SEMICOLON)) {
-      if (this.CurTokenIs(token.EOF)) {
-        break;
-      }
-      console.log("DISCARDME:", this.cur_token_);
+    if (this.CurTokenIs(token.SEMICOLON)) {
       this.NextToken();
     }
+
     return stmt;
   }
 
   ParsePwdStatement() {
+    console.log("YO PWD!");
     let stmt = new ast.PwdStatement(this.cur_token_);
     this.NextToken();
 
     console.log(this.cur_token_);
+    console.log("EXPECT CUR TO BE EOF? or SEMICOLON");
 
-    while (!this.CurTokenIs(token.SEMICOLON)) {
-      if (this.CurTokenIs(token.EOF)) {
-        break;
-      }
-      console.log("DISCARDME:", this.cur_token_);
+    if (this.PeekTokenIs(token.SEMICOLON)) {
       this.NextToken();
     }
+
     return stmt;
   }
 
