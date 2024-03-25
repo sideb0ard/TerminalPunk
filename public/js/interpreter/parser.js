@@ -96,6 +96,8 @@ export class Parser {
         return this.ParseCdStatement();
       case token.LS:
         return this.ParseLsStatement();
+      case token.PWD:
+        return this.ParsePwdStatement();
       default:
         return this.ParseExpressionStatement();
     }
@@ -157,6 +159,22 @@ export class Parser {
 
   ParseLsStatement() {
     let stmt = new ast.LsStatement(this.cur_token_);
+    this.NextToken();
+
+    console.log(this.cur_token_);
+
+    while (!this.CurTokenIs(token.SEMICOLON)) {
+      if (this.CurTokenIs(token.EOF)) {
+        break;
+      }
+      console.log("DISCARDME:", this.cur_token_);
+      this.NextToken();
+    }
+    return stmt;
+  }
+
+  ParsePwdStatement() {
+    let stmt = new ast.PwdStatement(this.cur_token_);
     this.NextToken();
 
     console.log(this.cur_token_);
@@ -249,6 +267,7 @@ export class Parser {
   }
 
   ParseGroupedExpression(left_expression) {
+    this.NextToken();
     let exp = this.ParseExpression(Precedence.LOWEST);
     if (!this.ExpectPeek(token.RPAREN)) {
       return null;

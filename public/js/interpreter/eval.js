@@ -1,14 +1,18 @@
 import * as ast from "./ast.js";
 import * as pobject from "./objects.js";
 
+import {
+  Environment
+} from "../environment.js"
 
-function Eval(node) {
+function Eval(env, node) {
+  console.log("NOOODE:", node);
   if (node instanceof ast.Program) {
     console.log("INSTACNE OF PROGRAM");
-    return EvalStatements(node.statements_);
+    return EvalStatements(env, node.statements_);
   } else if (node instanceof ast.ExpressionStatement) {
     console.log("INSTACNE OF EXPRERSSSION STATEMENT");
-    return Eval(node.expression_);
+    return Eval(env, node.expression_);
   } else if (node instanceof ast.NumberLiteral) {
     console.log("INSTACNE OF NUMBER", node);
     return new pobject.Number(node.value_);
@@ -17,18 +21,24 @@ function Eval(node) {
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
     console.log("INSTACNE OF LS");
+    //if (Environment.fs) {
+    //  console.log("I HAZ A FILESYSTEM");
+    //  let str = new pobject.String();
+    //  str.Append(Environment.fs.ListContents());
+    //  return str;
+    //}
     return new pobject.Null();
   } else if (node instanceof ast.CdStatement) {
     console.log("INSTACNE OF CD");
     return new pobject.Null();
   } else if (node instanceof ast.PrefixExpression) {
     console.log("INSTACNE OF PREFGIX");
-    let right = Eval(node.right_);
+    let right = Eval(env, node.right_);
     return EvalPrefixExpression(node.operator_, right)
   } else if (node instanceof ast.InfixExpression) {
     console.log("INSTACNE OF INFX");
-    let left = Eval(node.left_);
-    let right = Eval(node.right_);
+    let left = Eval(env, node.left_);
+    let right = Eval(env, node.right_);
     return EvalInfixExpression(node.operator_, left, right)
   } else {
     console.log("INSTACNE OF MNOTHING I KNOW ABOUT");
@@ -36,13 +46,13 @@ function Eval(node) {
   }
 }
 
-function EvalStatements(statements) {
+function EvalStatements(env, statements) {
   console.log("STATMENTS R:", statements);
   let result = new pobject.Null();
 
   statements.forEach((s) => {
     console.log("states:", s);
-    result = Eval(s);
+    result = Eval(env, s);
   });
 
   console.log("REURNEIING RESU>T:", result);

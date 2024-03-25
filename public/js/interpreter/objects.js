@@ -1,5 +1,6 @@
 export const NUMBER_OBJECT = "NUMBER";
 export const BOOLEAN_OBJECT = "BOOLEAN";
+export const STRING_OBJECT = "STRING";
 export const NULL_OBJECT = "NULL";
 
 class Pobject {
@@ -40,6 +41,19 @@ class Null extends Pobject {
   }
   Inspect() {
     return "n~ll";
+  }
+}
+
+class String extends Pobject {
+  constructor() {
+    super(STRING_OBJECT);
+    this.string_parts = [];
+  }
+  Append(str) {
+    this.string_parts.push(str);
+  }
+  Inspect() {
+    return this.string_parts.join(" ");
   }
 }
 

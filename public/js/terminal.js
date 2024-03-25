@@ -2,9 +2,10 @@ import {
   Computer
 } from "./computer.js"
 
-export let Environment = {
-  "location": "/foo/bar",
-};
+import {
+  Environment
+} from "./environment.js"
+
 
 const terminalWidthInChars = 60;
 // const MARGIN = 30;
@@ -107,7 +108,7 @@ class StatusBar {
     this.p5.fill(this.textColor);
     let displayX = 10;
     let displayY = y + 30;
-    DisplayWord(this.p5, displayX, displayY, Environment["location"]);
+    DisplayWord(this.p5, displayX, displayY, Environment["pwd"]);
     displayX = this.p5.width - 230;
     DisplayWord(this.p5, displayX, displayY, this.os);
   }
@@ -148,12 +149,13 @@ class Cursor {
 class Terminal {
   constructor(p) {
     this.p5 = p;
-    this.lineNum = 1;
     this.computer = new Computer(p);
-    this.computerColor = p.color(0, 195, 0);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
-    this.showStatusBar = false;
     this.statusBar = new StatusBar(p);
+
+    this.lineNum = 1;
+    this.computerColor = p.color(0, 195, 0);
+    this.showStatusBar = false;
 
   }
 

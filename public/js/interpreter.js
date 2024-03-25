@@ -1,8 +1,4 @@
 import {
-  Environment,
-} from "./terminal.js";
-
-import {
   Lexer,
 } from "./interpreter/lexer.js";
 
@@ -17,15 +13,15 @@ import {
 
 import * as token from "./interpreter/tokens.js";
 
-function Interpret(line) {
-  console.log("REPL! REPL!");
+function Interpret(env, line) {
+  console.log("REPL! REPL!", env, line);
 
   let lex = new Lexer(line);
   let parser = new Parser(lex);
   let prog = parser.ParseProgram();
   console.log("PARSE FINISHED:", prog);
 
-  let resp = Eval(prog);
+  let resp = Eval(env, prog);
   return resp.Inspect();
 
   // return "computer says no";

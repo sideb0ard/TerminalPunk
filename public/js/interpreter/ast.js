@@ -71,6 +71,17 @@ class CdStatement extends Statement {
   }
 }
 
+class PwdStatement extends Statement {
+  constructor(token) {
+    super(token);
+  }
+
+  String() {
+    console.log(this.token_.literal);
+  }
+}
+
+
 class ExpressionStatement extends Statement {
   constructor(token) {
     super(token);
