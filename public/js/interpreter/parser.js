@@ -159,10 +159,13 @@ export class Parser {
   ParseLsStatement() {
     let stmt = new ast.LsStatement(this.cur_token_);
 
-    console.log(this.cur_token_);
+    console.log(this.cur_token_, " LS STATE YO", this.peek_token_);
     if (this.PeekTokenIs(token.IDENT)) {
       this.NextToken();
       stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
+    } else if (this.PeekTokenIs(token.SLASH)) {
+      this.NextToken();
+      stmt.target_ = new ast.Identifier("/", "/");
     }
 
     if (this.CurTokenIs(token.SEMICOLON)) {

@@ -32,6 +32,7 @@ class Computer {
     this.bot.isTalking = true;
     this.devmode = true;
     Environment.fs = new FileSystem();
+    Environment.pwd = "/foo/bar";
   }
 
   Read(inputLine) {

@@ -20,11 +20,19 @@ function Eval(env, node) {
     console.log("INSTACNE OF BOOLEAN");
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
-    console.log("INSTACNE OF LS");
+    console.log("INSTACNE OF LS, target:", node.target_);
     if (env && env.fs) {
       console.log("I HAZ A FILESYSTEM");
       let str = new pobject.String();
-      let target = node.target_ ? node.target_.value_ : "/";
+      let target = "";
+      if (node.target_) {
+        if (node.target_.value_.startsWith("/"))
+          target = node.target_.value_;
+        else
+          target = env.pwd + "/" + node.target_.value_;
+      } else {
+        target = env.pwd;
+      }
       console.log("TARRGET:", target);
       str.Append(env.fs.ListContents(target));
       console.log("STRT TO RETURN:", str);

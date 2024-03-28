@@ -2,30 +2,29 @@ export class Directory {
   constructor(parent, name) {
     this.parent = parent;
     this.name = name;
-    this.subdirs = [];
+    this.subdirs = new Map();
   }
 
   Name() {
     return this.name;
   }
 
-  AddDirectory(dir) {
-    this.subdirs.push(dir);
+  AddSubDirectory(dir) {
+    console.log("YO IM ", this.name, "add SUBDIR ", dir);
+    this.subdirs.set(dir.Name(), dir);
   }
 
-  HasSubDirectory(dirname) {
-    this.subdirs.forEach((d) => {
-      if (d.Name() === dirname) return true;
-    });
-    return false;
+  GetSubDirectory(dirname) {
+    console.log("YO IM ", this.name, "GET SUBDIR ", dirname);
+    return this.subdirs.get(dirname);
   }
 
   ListContents() {
-    // let reply = [".", ".."];
+    console.log("YO IM ", this.name, "CALL LIS CONTX", this.subdirs);
+    console.log("KEYSZZ:", this.subdirs.keys());
     let reply = [];
-    this.subdirs.forEach((sd) => {
-      reply.push(sd.name);
-      //  reply.push(sd.ListContents());
+    this.subdirs.forEach((value, key) => {
+      reply.push(key);
     });
     return reply;
   }

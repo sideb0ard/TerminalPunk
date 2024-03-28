@@ -15,7 +15,7 @@ let lineHeight = 40;
 let fontSize = 28;
 let fontWidth = 20;
 
-let leftMargin = fontWidth * 1.5;
+let leftMargin = fontWidth * 1.0;
 let rightMargin = fontWidth;
 let bottomMargin = lineHeight * 2;
 
