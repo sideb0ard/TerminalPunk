@@ -104,7 +104,6 @@ export class Parser {
   }
 
   ParseLetStatement() {
-    // console.log("LET STATME");
     let stmt = new ast.LetStatement(this.cur_token_);
     if (!this.ExpectPeek(token.IDENT)) {
       console.log("NAE EXPECT IDENT! have:", this.peek_token_.token_type, " BUT WANT:", token.IDENT);
@@ -142,12 +141,14 @@ export class Parser {
   }
 
   ParseCdStatement() {
+    console.log("PARSSCDDDD");
     let stmt = new ast.CdStatement(this.cur_token_);
     console.log(this.cur_token_);
     if (this.PeekTokenIs(token.IDENT)) {
       this.NextToken();
       stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
     }
+    console.log("PARSSCDDDD - TAREG", stmt.target_);
 
     if (this.CurTokenIs(token.SEMICOLON)) {
       this.NextToken();
@@ -163,6 +164,14 @@ export class Parser {
     if (this.PeekTokenIs(token.IDENT)) {
       this.NextToken();
       stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
+    } else if (this.PeekTokenIs(token.PERIOD)) {
+      this.NextToken();
+      if (this.PeekTokenIs(token.PERIOD)) {
+        this.NextToken();
+        stmt.target_ = new ast.Identifier("..", "..");
+      } else {
+        stmt.target_ = new ast.Identifier(".", ".");
+      }
     } else if (this.PeekTokenIs(token.SLASH)) {
       this.NextToken();
       stmt.target_ = new ast.Identifier("/", "/");
@@ -176,12 +185,8 @@ export class Parser {
   }
 
   ParsePwdStatement() {
-    console.log("YO PWD!");
     let stmt = new ast.PwdStatement(this.cur_token_);
     this.NextToken();
-
-    console.log(this.cur_token_);
-    console.log("EXPECT CUR TO BE EOF? or SEMICOLON");
 
     if (this.PeekTokenIs(token.SEMICOLON)) {
       this.NextToken();
@@ -196,7 +201,6 @@ export class Parser {
   ParseExpressionStatement(prec) {
     let stmt = new ast.ExpressionStatement(this.cur_token_);
     stmt.expression_ = this.ParseExpression(Precedence.LOWEST);
-    console.log("GOT ", stmt.expression_);
     if (!stmt.expression_) {
       console.log("UNDEFINE YO");
       return;
@@ -209,28 +213,18 @@ export class Parser {
   }
 
   ParseExpression(prec) {
-    console.log("LOOKING FOR PRECEDENCE:", prec, "TOKEN:", this.cur_token_);
     let prefix = this.prefix_parse_fns_[this.cur_token_.token_type];
     if (!prefix) {
-      console.log("PREXZ:", this.prefix_parse_fns_);
       console.log("Nah, nae prefix:", prefix, " returning null");
       return;
     }
 
-    console.log("PREFIXFN:", prefix);
-
     let left_exp = prefix();
-    console.log("LEFT EXPRESSION:", left_exp);
-
-    console.log("LETS LOOK FOR AN INFIX OP.. PREC is ", prec, " PEEK PRECEDENC IS", this.PeekPrecedence());
     while (!this.PeekTokenIs(token.SEMICOLON) && prec < this.PeekPrecedence()) {
-      console.log("LOOKINF FOR INFIX FUNC for token_type:", this.peek_token_.token_type, " in ", this.infix_parse_fns_);
       let infix = this.infix_parse_fns_[this.peek_token_.token_type];
       if (!infix) {
-        console.log("NAE INFIX");
         return left_exp;
       }
-      console.log("GOT INFIX");
       this.NextToken();
       left_exp = infix(left_exp);
     }
@@ -243,7 +237,6 @@ export class Parser {
   }
 
   ParseNumberLiteral() {
-    console.log("YOYO", this);
     return new ast.NumberLiteral(this.cur_token_, this.cur_token_.literal);
   }
 
@@ -263,7 +256,6 @@ export class Parser {
   }
 
   ParseBoolean() {
-    console.log("YO PARSE BOOLEAN - val:", this.cur_token_, this);
     return new ast.Boolean(this.cur_token_, this.CurTokenIs(token.TRUE));
   }
 
@@ -306,10 +298,8 @@ export class Parser {
 
   PeekPrecedence() {
     let token_type = this.peek_token_.token_type;
-    console.log("YO PEEK PRECEDENCE - looking for ", token_type, " ", precedences);
     if (precedences.has(token_type)) {
 
-      console.log("IN MAP!", precedences.get(token_type));
       return precedences.get(token_type);
     }
     console.log("NTO IN MAP - RETUN LOWESET");
@@ -317,12 +307,9 @@ export class Parser {
   }
 
   CurPrecedence() {
-    console.log("CurPrec!");
     if (precedences.has(this.cur_token_.token_type)) {
-      console.log("FOUND IN PRCEDENCS - RETURNING:", precedences.get(this.cur_token_.token_type));
       return precedences.get(this.cur_token_.token_type);
     }
-    console.log("NOT FOUND IN PRCEDENCS - RETURNING:", Precedence.LOWEST);
     return Precedence.LOWEST;
   }
 }

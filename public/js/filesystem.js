@@ -15,44 +15,43 @@ export class FileSystem {
     this.root.AddSubDirectory(foo);
   }
 
+  GetDirPath(dirname) {
+    let dirHandle = this.GetHandle(dirname);
+    if (dirHandle) {
+      return dirHandle.GetFullPath();
+    }
+  }
+
   ListContents(dirname) {
-    if (!dirname.startsWith('/')) {
-      console.log("ERROR - need full path, but you passed in:", path);
+    if (!dirname) {
+      console.log("ERRoR - nae dirname!");
       return null;
     }
-    console.log("FS LIST CONTENTS _:", dirname);
     let dirHandle = this.GetHandle(dirname);
-    console.log("HERS MY HANDLE:", dirHandle);
     if (dirHandle) {
-      console.log("GOT A HANDLE - CLLING LIST CONTENTS");
       return dirHandle.ListContents();
     }
     return null;
   }
 
   GetHandle(path) {
-    if (!path.startsWith('/')) {
-      console.log("ERROR - need full path, but you passed in:", path);
-      return null;
-    }
-    if (path.length == 1) {
+    if (path.length == 1 && path.match(/^\/$/)) {
       return this.root;
     }
     let curdir = this.root;
-    console.log("CUR:", curdir);
     path = path.slice(1);
     const dirnames = path.split('/');
     dirnames.every((d) => {
+      if (d === '.') return true;
+      if (d === '..') {
+        curdir = curdir.GetParent();
+        return true;
+      }
       let sd = curdir.subdirs.get(d);
       if (!sd) return false;
       curdir = sd;
       return true;
     });
-    if (curdir.Name() == dirnames.slice(-1)) {
-      console.log("FOUND IT - ", curdir.Name());
-      return curdir;
-    }
-    console.log("DIDNT FIND IT!");
-    return null;
+    return curdir;
   }
 }

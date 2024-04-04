@@ -20,29 +20,9 @@ function Eval(env, node) {
     console.log("INSTACNE OF BOOLEAN");
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
-    console.log("INSTACNE OF LS, target:", node.target_);
-    if (env && env.fs) {
-      console.log("I HAZ A FILESYSTEM");
-      let str = new pobject.String();
-      let target = "";
-      if (node.target_) {
-        if (node.target_.value_.startsWith("/"))
-          target = node.target_.value_;
-        else
-          target = env.pwd + "/" + node.target_.value_;
-      } else {
-        target = env.pwd;
-      }
-      console.log("TARRGET:", target);
-      str.Append(env.fs.ListContents(target));
-      console.log("STRT TO RETURN:", str);
-      return str;
-    }
-    return new pobject.Null();
+    return EvalLsStatement(env, node);
   } else if (node instanceof ast.PwdStatement) {
-    console.log("INSTACNE OF PWD");
     if (env && env.pwd) {
-      console.log("I HAZ A PWD");
       let str = new pobject.String();
       str.Append(env.pwd);
       return str;
@@ -50,7 +30,7 @@ function Eval(env, node) {
     return new pobject.Null();
   } else if (node instanceof ast.CdStatement) {
     console.log("INSTACNE OF CD");
-    return new pobject.Null();
+    return EvalCdStatement(env, node);
   } else if (node instanceof ast.PrefixExpression) {
     console.log("INSTACNE OF PREFGIX");
     let right = Eval(env, node.right_);
@@ -139,6 +119,44 @@ function EvalNumberInfixExpression(operator, left, right) {
   }
 }
 
+function EvalLsStatement(env, node) {
+  if (env && env.fs) {
+    let str = new pobject.String();
+    let target = "";
+    if (node.target_) {
+      if (node.target_.value_.startsWith("/")) {
+        target = node.target_.value_;
+      } else {
+        target = env.pwd + "/" + node.target_.value_;
+      }
+    } else {
+      target = env.pwd;
+    }
+    str.Append(env.fs.ListContents(target));
+    return str;
+  }
+  return new pobject.Null();
+}
+
+function EvalCdStatement(env, node) {
+  console.log("YO EVAL CDDDD", node);
+  if (env && env.fs) {
+    let str = new pobject.String();
+    let target = "";
+    if (node.target_) {
+      if (node.target_.value_.startsWith("/")) {
+        target = node.target_.value_;
+      } else {
+        target = env.pwd + "/" + node.target_.value_;
+      }
+    } else {
+      target = env.pwd;
+    }
+    env.pwd = env.fs.GetDirPath(target);
+    console.log("NEW ENV!", env.pwd);
+  }
+  return new pobject.Null();
+}
 
 export {
   Eval,

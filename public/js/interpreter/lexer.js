@@ -1,7 +1,7 @@
 import * as token from "./tokens.js";
 
 function IsLetter(ch) {
-  return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch === '_' || ch === '/';
+  return 'a' <= ch && ch <= 'z' || 'A' <= ch && ch <= 'Z' || ch === '_' || ch === '/' || ch === '.';
 }
 
 function IsDigit(ch) {
@@ -44,6 +44,7 @@ class Lexer {
   NextToken() {
     this.SkipWhiteSpace();
     let tok;
+    console.log("NEXT TOKEN - CUURR:", this.current_char);
     switch (this.current_char) {
       case "=":
         if (this.PeekChar() == '=') {
@@ -73,6 +74,9 @@ class Lexer {
       case ";":
         tok = new token.Token(token.SEMICOLON, this.current_char);
         break;
+      case ",":
+        tok = new token.Token(token.COMMA, this.current_char);
+        break;
       case "(":
         tok = new token.Token(token.LPAREN, this.current_char);
         break;
@@ -97,6 +101,7 @@ class Lexer {
       default:
         if (IsLetter(this.current_char)) {
           let literal = this.ReadIdentifier();
+          console.log("YO IDENTDDDDFF:", literal);
           tok = new token.Token(LookupIdent(literal), literal);
           return tok;
         } else if (IsDigit(this.current_char)) {
@@ -113,7 +118,8 @@ class Lexer {
 
   ReadIdentifier() {
     let pos = this.current_position;
-    while (IsLetter(this.current_char)) this.ReadChar();
+    this.ReadChar(); // identifier can't start with a number so take first char
+    while (IsLetter(this.current_char) || IsDigit(this.current_char)) this.ReadChar();
     return this.input.substring(pos, this.current_position);
   }
 
