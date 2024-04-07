@@ -17,7 +17,6 @@ function LookupIdent(ident) {
 
 class Lexer {
   constructor(input) {
-    console.log("NEW LEX LUTHOR!");
     this.input = input;
     this.current_char = 0;
     this.current_position = 0;
@@ -44,7 +43,6 @@ class Lexer {
   NextToken() {
     this.SkipWhiteSpace();
     let tok;
-    console.log("NEXT TOKEN - CUURR:", this.current_char);
     switch (this.current_char) {
       case "=":
         if (this.PeekChar() == '=') {
@@ -101,7 +99,6 @@ class Lexer {
       default:
         if (IsLetter(this.current_char)) {
           let literal = this.ReadIdentifier();
-          console.log("YO IDENTDDDDFF:", literal);
           tok = new token.Token(LookupIdent(literal), literal);
           return tok;
         } else if (IsDigit(this.current_char)) {
@@ -124,7 +121,6 @@ class Lexer {
   }
 
   ReadNumber() {
-    console.log("READNUM:");
     let pos = this.current_position;
     while (IsDigit(this.current_char) || this.current_char == '.') this.ReadChar();
     return this.input.substring(pos, this.current_position);

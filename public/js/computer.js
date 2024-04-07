@@ -13,7 +13,7 @@ import {
 
 
 const intro = "LO";
-// const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
+//const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
 // const yourName = "Iron Dollar Adamson";
 // const intro = "Your name is " + yourName;
 
@@ -42,8 +42,9 @@ class Computer {
     this.responseLine = "";
     if (this.inputLine.length > 0) {
       console.log("READGOT:", this.inputLine);
-      this.responseLine = Interpret(Environment, this.inputLine);
-      console.log("READGOT A4ft Interpret:", this.responseLine);
+      let resp = Interpret(Environment, this.inputLine);
+      console.log("READGOT A4ft Interpret:", resp);
+      if (resp !== "n~ll") this.responseLine = resp;
     }
     this.responseIdx = 0;
   }

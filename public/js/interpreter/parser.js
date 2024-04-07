@@ -67,7 +67,6 @@ export class Parser {
   NextToken() {
     this.cur_token_ = this.peek_token_;
     this.peek_token_ = this.lex_.NextToken();
-    console.log("NEXTTOKEN:: cur is:", this.cur_token_, " peek is:", this.peek_token_);
   }
 
   //// ENTRY PROGRAM ///////////////////////////////////////////////////////////////////
@@ -77,7 +76,6 @@ export class Parser {
       let stmt = this.ParseStatement();
       if (stmt) {
         program.statements_.push(stmt);
-        stmt.String();
       }
       this.NextToken();
     }
@@ -86,7 +84,6 @@ export class Parser {
 
   //// STATEMENTS ///////////////////////////////////////////////////////////////////
   ParseStatement() {
-    console.log("PARSE STATEMENT!", this.cur_token_.token_type);
     switch (this.cur_token_.token_type) {
       case token.LET:
         return this.ParseLetStatement();
@@ -106,12 +103,10 @@ export class Parser {
   ParseLetStatement() {
     let stmt = new ast.LetStatement(this.cur_token_);
     if (!this.ExpectPeek(token.IDENT)) {
-      console.log("NAE EXPECT IDENT! have:", this.peek_token_.token_type, " BUT WANT:", token.IDENT);
       return null;
     }
     stmt.name_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
     if (!this.ExpectPeek(token.ASSIGN)) {
-      console.log("NAE EXPECT ASSIGN!");
       return null;
     }
     this.NextToken();
@@ -140,15 +135,33 @@ export class Parser {
     return stmt;
   }
 
+  ParsePath() {
+    console.log("PARSZPATH");
+    let target;
+    if (this.PeekTokenIs(token.IDENT)) {
+      this.NextToken();
+      target = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
+    } else if (this.PeekTokenIs(token.PERIOD)) {
+      this.NextToken();
+      if (this.PeekTokenIs(token.PERIOD)) {
+        this.NextToken();
+        target = new ast.Identifier("..", "..");
+      } else {
+        target = new ast.Identifier(".", ".");
+      }
+    } else if (this.PeekTokenIs(token.SLASH)) {
+      this.NextToken();
+      target = new ast.Identifier("/", "/");
+    }
+    console.log("CHOSE PATH:", target);
+    return target;
+  }
+
   ParseCdStatement() {
     console.log("PARSSCDDDD");
     let stmt = new ast.CdStatement(this.cur_token_);
-    console.log(this.cur_token_);
-    if (this.PeekTokenIs(token.IDENT)) {
-      this.NextToken();
-      stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
-    }
-    console.log("PARSSCDDDD - TAREG", stmt.target_);
+    stmt.target_ = this.ParsePath();
+    console.log("CD PARSEZPTHA RETURNED:", stmt.target_);
 
     if (this.CurTokenIs(token.SEMICOLON)) {
       this.NextToken();
@@ -159,23 +172,7 @@ export class Parser {
 
   ParseLsStatement() {
     let stmt = new ast.LsStatement(this.cur_token_);
-
-    console.log(this.cur_token_, " LS STATE YO", this.peek_token_);
-    if (this.PeekTokenIs(token.IDENT)) {
-      this.NextToken();
-      stmt.target_ = new ast.Identifier(this.cur_token_, this.cur_token_.literal);
-    } else if (this.PeekTokenIs(token.PERIOD)) {
-      this.NextToken();
-      if (this.PeekTokenIs(token.PERIOD)) {
-        this.NextToken();
-        stmt.target_ = new ast.Identifier("..", "..");
-      } else {
-        stmt.target_ = new ast.Identifier(".", ".");
-      }
-    } else if (this.PeekTokenIs(token.SLASH)) {
-      this.NextToken();
-      stmt.target_ = new ast.Identifier("/", "/");
-    }
+    stmt.target_ = this.ParsePath();
 
     if (this.CurTokenIs(token.SEMICOLON)) {
       this.NextToken();
@@ -277,7 +274,6 @@ export class Parser {
   }
 
   PeekTokenIs(token_type) {
-    console.log("YO PEEK - for ", token_type, " ppek tok", this.peek_token_.token_type);
     if (this.peek_token_.token_type == token_type) return true;
     return false;
   }
@@ -302,7 +298,6 @@ export class Parser {
 
       return precedences.get(token_type);
     }
-    console.log("NTO IN MAP - RETUN LOWESET");
     return Precedence.LOWEST;
   }
 

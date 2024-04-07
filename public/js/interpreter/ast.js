@@ -140,7 +140,6 @@ class InfixExpression extends Expression {
 
 class Boolean extends Expression {
   constructor(token, value) {
-    console.log("YO BOOLEN CONTRES:", token, value);
     super(token);
     this.value_ = value;
   }
@@ -158,7 +157,6 @@ class Program extends Node {
 
   String() {
     this.statements_.forEach((s) => {
-      //console.log("STTEMENT:");
       s.String();
     });
   }

@@ -6,18 +6,13 @@ import {
 } from "../environment.js"
 
 function Eval(env, node) {
-  console.log("NOOODE:", node);
   if (node instanceof ast.Program) {
-    console.log("INSTACNE OF PROGRAM");
     return EvalStatements(env, node.statements_);
   } else if (node instanceof ast.ExpressionStatement) {
-    console.log("INSTACNE OF EXPRERSSSION STATEMENT");
     return Eval(env, node.expression_);
   } else if (node instanceof ast.NumberLiteral) {
-    console.log("INSTACNE OF NUMBER", node);
     return new pobject.Number(node.value_);
   } else if (node instanceof ast.Boolean) {
-    console.log("INSTACNE OF BOOLEAN");
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
     return EvalLsStatement(env, node);
@@ -29,7 +24,6 @@ function Eval(env, node) {
     }
     return new pobject.Null();
   } else if (node instanceof ast.CdStatement) {
-    console.log("INSTACNE OF CD");
     return EvalCdStatement(env, node);
   } else if (node instanceof ast.PrefixExpression) {
     console.log("INSTACNE OF PREFGIX");
@@ -47,15 +41,12 @@ function Eval(env, node) {
 }
 
 function EvalStatements(env, statements) {
-  console.log("STATMENTS R:", statements);
   let result = new pobject.Null();
 
   statements.forEach((s) => {
-    console.log("states:", s);
     result = Eval(env, s);
   });
 
-  console.log("REURNEIING RESU>T:", result);
   return result;
 }
 
@@ -147,11 +138,16 @@ function EvalCdStatement(env, node) {
       if (node.target_.value_.startsWith("/")) {
         target = node.target_.value_;
       } else {
-        target = env.pwd + "/" + node.target_.value_;
+        if (env.pwd === "/") {
+          target = env.pwd + node.target_.value_;
+        } else {
+          target = env.pwd + "/" + node.target_.value_;
+        }
       }
     } else {
       target = env.pwd;
     }
+    console.log("TAREGET IS:", target);
     env.pwd = env.fs.GetDirPath(target);
     console.log("NEW ENV!", env.pwd);
   }

@@ -155,7 +155,7 @@ class Terminal {
 
     this.lineNum = 1;
     this.computerColor = p.color(0, 195, 0);
-    this.showStatusBar = false;
+    this.showStatusBar = true;
 
   }
 
@@ -165,7 +165,7 @@ class Terminal {
     let lineWidthChars = this.p5.width / fontWidth;
 
     let historyLinesToDisplay = Math.min(screenHistory.length,
-      displayLenInLines - 2);
+      displayLenInLines - 3);
 
     let historyStartIdx = 0;
     if (screenHistory.length > historyLinesToDisplay) {
