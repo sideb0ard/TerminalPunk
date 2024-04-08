@@ -1,8 +1,11 @@
-const BotWidth = 14;
-const PixWidth = 7;
+// const BotWidth = 14;
+// const this.pixWidth = 7;
 
 class Bot {
-  constructor() {
+  constructor(p) {
+    this.p5 = p;
+    this.screenHeight = 110;
+    this.pixWidth = 7;
     this.head = [{
         y: 0,
         x: 5
@@ -236,32 +239,32 @@ class Bot {
     this.isTalking = false;
   }
 
-  display(p) {
-    let topx = width - (BotWidth * 2) * PixWidth;
-    let topy = height - statusHeight - (BotWidth * 2) * PixWidth;
-    p.noStroke();
-    p.fill(0, 255, 0);
+  Display() {
+    let topx = 10;
+    let topy = 10;
+    this.p5.noStroke();
+    this.p5.fill(0, 255, 0);
     this.head.forEach((pix) => {
-      let x = topx + pix.x * PixWidth;
-      let y = topy + pix.y * PixWidth;
-      p.square(x, y, PixWidth);
+      let x = topx + pix.x * this.pixWidth;
+      let y = topy + pix.y * this.pixWidth;
+      this.p5.square(x, y, this.pixWidth);
     });
     this.eyes.forEach((pix) => {
-      let x = topx + pix.x * PixWidth;
-      let y = topy + pix.y * PixWidth;
-      p.square(x, y, PixWidth);
+      let x = topx + pix.x * this.pixWidth;
+      let y = topy + pix.y * this.pixWidth;
+      this.p5.square(x, y, this.pixWidth);
     });
-    if (this.isTalking && (frameCount % 30 < 15)) {
+    if (this.isTalking && (this.p5.frameCount % 30 < 15)) {
       this.openSmile.forEach((pix) => {
-        let x = topx + pix.x * PixWidth;
-        let y = topy + pix.y * PixWidth;
-        p.square(x, y, PixWidth);
+        let x = topx + pix.x * this.pixWidth;
+        let y = topy + pix.y * this.pixWidth;
+        this.p5.square(x, y, this.pixWidth);
       });
     } else {
       this.closedSmile.forEach((pix) => {
-        let x = topx + pix.x * PixWidth;
-        let y = topy + pix.y * PixWidth;
-        p.square(x, y, PixWidth);
+        let x = topx + pix.x * this.pixWidth;
+        let y = topy + pix.y * this.pixWidth;
+        this.p5.square(x, y, this.pixWidth);
       });
     }
   }

@@ -42,7 +42,7 @@ export class Directory {
     this.subdirs.forEach((value, key) => {
       reply.push(key);
     });
-    return reply;
+    return reply.sort().join(' ');
   }
 
 }

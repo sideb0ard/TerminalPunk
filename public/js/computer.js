@@ -1,23 +1,26 @@
 import {
-  Bot,
-} from "./bot.js";
-import {
   Interpret,
 } from "./interpreter.js";
 import {
   FileSystem
 } from "./filesystem.js"
 import {
-  Environment
+  Environment,
+  Modes
 } from "./environment.js"
 
 
-const intro = "LO";
+const intro = "Hi hi! you look new here. Want some instructions?";
+// const intro = "LO";
 //const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
 // const yourName = "Iron Dollar Adamson";
 // const intro = "Your name is " + yourName;
 
+const instructions = "You're an ace hacker working for BCPL - The Bureau for the Containment of Programmatic Lifeforms. Your mission is to track down a rogue AI named Mat Daemon, who is loose on this file system. Using a combination of unix commands and text adventure verbs, your mission is to find, isolate and terminate his process!";
+
 const drinks = ["whiskey", "beer", "wine", "coke", "oil", "tea", "coffee", "piss", "water"];
+
+function ParseAdventureCommands(input) {}
 
 class Computer {
   constructor(p) {
@@ -28,29 +31,29 @@ class Computer {
     this.responseIdx = 0;
     this.nextFrameIncr = 0;
     this.currentLine = 1;
-    this.bot = new Bot();
-    this.bot.isTalking = true;
     this.devmode = true;
     Environment.fs = new FileSystem();
-    Environment.pwd = "/foo/bar";
+    Environment.pwd = "/home/orion";
   }
 
+  // called from keypress == Enter, defined in Terminal
   Read(inputLine) {
     this.inputLine = inputLine.slice();
     this.isComputing = true;
-    this.bot.isTalking = true;
     this.responseLine = "";
     if (this.inputLine.length > 0) {
-      console.log("READGOT:", this.inputLine);
-      let resp = Interpret(Environment, this.inputLine);
-      console.log("READGOT A4ft Interpret:", resp);
-      if (resp !== "n~ll") this.responseLine = resp;
+      if (Environment.mode === Modes.INTRO) {
+        if (!this.inputLine.match(/no/g)) {
+          console.log("HE SAID YES!");
+          this.responseLine = instructions;
+        }
+        Environment.mode = Modes.COMMAND;
+      } else {
+        let resp = Interpret(Environment, this.inputLine);
+        if (resp !== "n~ll") this.responseLine = resp;
+      }
     }
     this.responseIdx = 0;
-  }
-
-  Display() {
-    this.bot.Display(this.p5);
   }
 
   // slow response ...
@@ -61,7 +64,6 @@ class Computer {
       this.responseIdx++;
       if (this.responseIdx >= this.responseLine.length) {
         this.isComputing = false;
-        this.bot.isTalking = false;
       } else {
         this.nextFrameIncr = this.p5.frameCount + this.p5.random(3);
       }

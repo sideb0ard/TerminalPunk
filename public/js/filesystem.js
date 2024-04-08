@@ -13,6 +13,15 @@ export class FileSystem {
     let foo = new Directory(this.root, "foo");
     foo.AddSubDirectory(new Directory(foo, "bar"));
     this.root.AddSubDirectory(foo);
+    this.root.AddSubDirectory(new Directory(this.root, "bin"));
+    this.root.AddSubDirectory(new Directory(this.root, "etc"));
+    this.root.AddSubDirectory(new Directory(this.root, "dev"));
+    let home = new Directory(this.root, "home");
+    console.log("HOME:", home);
+    home.AddSubDirectory(new Directory(home, "orion"));
+    home.AddSubDirectory(new Directory(home, "mdaemon"));
+    this.root.AddSubDirectory(home);
+    this.root.AddSubDirectory(new Directory(this.root, "var"));
   }
 
   GetDirPath(dirname) {

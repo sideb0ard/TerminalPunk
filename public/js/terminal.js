@@ -1,4 +1,8 @@
 import {
+  Bot,
+} from "./bot.js";
+
+import {
   Computer
 } from "./computer.js"
 
@@ -21,12 +25,14 @@ let bottomMargin = lineHeight * 2;
 
 let cursorX = 0;
 const shellIcon = ">";
+const PS2Line = "orion@terminalpunk";
 
 let cursorBlinkOnTime = 40;
 let cursorBlinkOffTime = 20;
 
 const SCREEN_ENTRY_USER_TYPE = 0;
 const SCREEN_ENTRY_COMPUTER_TYPE = 1;
+const PS2_TYPE = 2;
 
 let screenHistory = [];
 let history = [];
@@ -36,26 +42,6 @@ let lineBuffer = "";
 let lineBufferTmp = "";
 
 const statusHeight = 50;
-
-let map = {
-  "/": {
-    "usr": {},
-    "home": {},
-    "opt": {},
-    "bin": {},
-    "sbin": {},
-    "bin": {},
-    "etc": {},
-    "tmp": {},
-    "dev": {},
-    "var": {
-      "log": {},
-    },
-    "foo": {
-      "bar": {},
-    },
-  }
-}
 
 function isPrintable(keyCode) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
@@ -153,9 +139,15 @@ class Terminal {
     this.cursor = new Cursor(p, p.color(0, 255, 0));
     this.statusBar = new StatusBar(p);
 
+    this.bot = new Bot(p);
+    this.shouldDisplayBot = true;
+
+    this.PS2Display;
     this.lineNum = 1;
     this.computerColor = p.color(0, 195, 0);
     this.showStatusBar = true;
+
+    this.PS2Color = p.color(255, 0, 255);
 
   }
 
@@ -165,7 +157,7 @@ class Terminal {
     let lineWidthChars = this.p5.width / fontWidth;
 
     let historyLinesToDisplay = Math.min(screenHistory.length,
-      displayLenInLines - 3);
+      displayLenInLines - 6);
 
     let historyStartIdx = 0;
     if (screenHistory.length > historyLinesToDisplay) {
@@ -181,17 +173,26 @@ class Terminal {
     }
 
     if (computeEval) {
+      this.bot.isTalking = true;
       this.DisplayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
       if (!this.computer.isComputing) {
         screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
       }
     } else {
+      this.bot.isTalking = false;
+      let displayDir = ("/home/orion" === Environment.pwd) ? "~" : Environment.pwd;
+      this.PS2Display = PS2Line + " [" + displayDir + "]";
+      this.DisplayLine(PS2_TYPE, this.PS2Display);
       this.DisplayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
-      this.cursor.Display(leftMargin + (shellIcon.length + lineBuffer.length) * fontWidth, (this.lineNum - 1) * lineHeight);
+      this.cursor.Display(leftMargin + (shellIcon.length + lineBuffer.length) * fontWidth, (this.lineNum - 1) * lineHeight + this.bot.screenHeight);
     }
 
-    if (this.showStatusBar) {
-      this.statusBar.Display();
+    // if (this.showStatusBar) {
+    //   this.statusBar.Display();
+    // }
+
+    if (this.shouldDisplayBot) {
+      this.bot.Display();
     }
 
   }
@@ -241,6 +242,7 @@ class Terminal {
 
     if (key == 'Enter') {
       this.computer.Read(lineBuffer);
+      screenHistory.push(new HistoryEntry(PS2_TYPE, this.PS2Display));
       screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
       if (lineBuffer.length > 0) {
         history.push(lineBuffer);
@@ -262,7 +264,9 @@ class Terminal {
     this.p5.textFont("monospace", fontSize);
     if (type === SCREEN_ENTRY_USER_TYPE) {
       this.p5.fill(this.cursor.color);;
-      this.p5.text(shellIcon, leftMargin, this.lineNum * lineHeight);
+      this.p5.text(shellIcon, leftMargin, this.lineNum * lineHeight + this.bot.screenHeight);
+    } else if (type === PS2_TYPE) {
+      this.p5.fill(this.PS2Color);;
     } else {
       this.p5.fill(this.computerColor);;
     }
@@ -275,6 +279,7 @@ class Terminal {
     let charCount = 0;
     let posX = leftMargin;
     if (type === SCREEN_ENTRY_USER_TYPE) posX += fontWidth;
+    console.log(posX);
 
     let wurds = line.split(" ");
     while (wurds.length) {
@@ -282,9 +287,10 @@ class Terminal {
       if (wurd.length > (maxCharsPerLine - charCount)) {
         this.lineNum++;
         posX = leftMargin;
+        console.log(posX);
         charCount = 0;
       }
-      let posY = this.lineNum * lineHeight;
+      let posY = this.lineNum * lineHeight + this.bot.screenHeight;
       DisplayWord(this.p5, posX, posY, wurd);
       posX += wurd.length * fontWidth;
       charCount += wurd.length;

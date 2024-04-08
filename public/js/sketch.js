@@ -8,6 +8,13 @@ export default function sketch(p) {
   p.hiddenInput;
   p.backg = 0;
 
+  if (navigator.maxTouchPoints > 1) {
+    console.log("TOUCH SCREEN!");
+    // browser supports multi-touch
+  } else {
+    console.log("NOT TOUCH!");
+  }
+
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);
     p.terminal = new Terminal(p);
@@ -21,14 +28,6 @@ export default function sketch(p) {
   p.keyPressed = () => {
     p.terminal.KeyPressed(p.keyCode, p.key);
   }
-
-  //p.touchStarted = () => {
-  //  console.log("TOUCHED!");
-  //  // if (p.backg == 255) p.backg = 0;
-  //  // else p.backg = 255;
-  //  p.hiddenInput.elt.focus();
-  //  return false;
-  //}
 
   p.windowResized = () => {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
