@@ -2,7 +2,8 @@ import * as ast from "./ast.js";
 import * as pobject from "./objects.js";
 
 import {
-  Environment
+  Environment,
+  Modes
 } from "../environment.js"
 
 function Eval(env, node) {
@@ -147,8 +148,15 @@ function EvalCdStatement(env, node) {
     } else {
       target = env.pwd;
     }
-    console.log("TAREGET IS:", target);
-    env.pwd = env.fs.GetDirPath(target);
+    let dir = env.fs.GetDir(target);
+    if (dir) {
+      console.log(dir);
+      env.pwd = dir.GetFullPath();
+      if (dir.action == "THE_LIBRARY") {
+        console.log("GOT DA ACTION");
+        env.mode = Modes.THE_LIBRARY;
+      }
+    }
     console.log("NEW ENV!", env.pwd);
   }
   return new pobject.Null();

@@ -7,7 +7,8 @@ import {
 } from "./computer.js"
 
 import {
-  Environment
+  Environment,
+  Modes
 } from "./environment.js"
 
 
@@ -34,7 +35,9 @@ const SCREEN_ENTRY_USER_TYPE = 0;
 const SCREEN_ENTRY_COMPUTER_TYPE = 1;
 const PS2_TYPE = 2;
 
+// for display including reposnse
 let screenHistory = [];
+// user's typing history
 let history = [];
 let historyIdx = 0;
 
@@ -73,33 +76,6 @@ function DisplayWord(p5, startX, posY, word) {
 }
 
 
-class StatusBar {
-  constructor(p) {
-    this.p5 = p;
-    this.credit = 107.00;
-    this.os = "utf-8[solx]";
-    this.height = statusHeight;
-    this.color = p.color(52, 66, 89, 0);
-    this.textColor = p.color(218, 227, 242, 0);
-  }
-  Display() {
-    if (this.p5.alpha(this.color) < 256) {
-      this.color.setAlpha(this.p5.alpha(this.color) + 1);
-      this.textColor.setAlpha(this.p5.alpha(this.textColor) + 1);
-    }
-    let y = this.p5.height - this.height;
-    this.p5.fill(this.color);
-    this.p5.rect(0, y, this.p5.width, this.p5.height);
-    this.p5.textFont("monospace", fontSize);
-    this.p5.fill(this.textColor);
-    let displayX = 10;
-    let displayY = y + 30;
-    DisplayWord(this.p5, displayX, displayY, Environment["pwd"]);
-    displayX = this.p5.width - 230;
-    DisplayWord(this.p5, displayX, displayY, this.os);
-  }
-}
-
 class HistoryEntry {
   constructor(type, content) {
     this.type = type;
@@ -137,35 +113,50 @@ class Terminal {
     this.p5 = p;
     this.computer = new Computer(p);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
-    this.statusBar = new StatusBar(p);
 
+    if (navigator.maxTouchPoints > 1) {
+      console.log("TOUCH SCREEN!");
+      this.computer.SetMode(Modes.NAE_KEYBOARD);
+      Environment.mode = Modes.NAE_KEYBOARD;
+      // browser supports multi-touch
+    } else {
+      console.log("NOT TOUCH!");
+      //this.computer.SetMode(Modes.NAE_KEYBOARD);
+      //Environment.mode = Modes.NAE_KEYBOARD;
+    }
     this.bot = new Bot(p);
     this.shouldDisplayBot = true;
 
     this.PS2Display;
     this.lineNum = 1;
+    this.displayLenInLines = 0;
+    this.lineWidthChars = 0;
     this.computerColor = p.color(0, 195, 0);
-    this.showStatusBar = true;
 
     this.PS2Color = p.color(255, 0, 255);
 
   }
 
   RefreshDisplay() {
-
-    let displayLenInLines = Math.floor(this.p5.height / lineHeight);
-    let lineWidthChars = this.p5.width / fontWidth;
-
-    let historyLinesToDisplay = Math.min(screenHistory.length,
-      displayLenInLines - 6);
-
-    let historyStartIdx = 0;
-    if (screenHistory.length > historyLinesToDisplay) {
-      historyStartIdx = screenHistory.length - historyLinesToDisplay;
+    if (Environment.mode == Modes.THE_LIBRARY) {
+      this.LibraryGameLoop();
+    } else {
+      this.CommandModeLoop();
     }
+  }
 
+  LibraryGameLoop() {
+    if (this.shouldDisplayBot) {
+      this.bot.Display();
+    }
+  }
+
+  CommandModeLoop() {
+    this.displayLenInLines = Math.floor(this.p5.height / lineHeight);
+    this.lineWidthChars = this.p5.width / fontWidth;
     this.lineNum = 1;
-    this.DisplayScreenHistory(historyStartIdx, screenHistory);
+
+    this.DisplayScreenHistory();
 
     let computeEval;
     if (this.computer.isComputing) {
@@ -186,10 +177,6 @@ class Terminal {
       this.DisplayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
       this.cursor.Display(leftMargin + (shellIcon.length + lineBuffer.length) * fontWidth, (this.lineNum - 1) * lineHeight + this.bot.screenHeight);
     }
-
-    // if (this.showStatusBar) {
-    //   this.statusBar.Display();
-    // }
 
     if (this.shouldDisplayBot) {
       this.bot.Display();
@@ -240,6 +227,10 @@ class Terminal {
       }
     }
 
+    if (key == 'Escape') {
+      Environment.mode = Modes.COMMAND;
+    }
+
     if (key == 'Enter') {
       this.computer.Read(lineBuffer);
       screenHistory.push(new HistoryEntry(PS2_TYPE, this.PS2Display));
@@ -247,15 +238,28 @@ class Terminal {
       if (lineBuffer.length > 0) {
         history.push(lineBuffer);
         historyIdx = history.length;
-        this.showStatusBar = true;
       }
       lineBuffer = "";
     }
   }
 
-  DisplayScreenHistory(startIdx, history) {
-    for (let i = startIdx; i < history.length; i++) {
-      this.DisplayLine(history[i].type, history[i].content);
+  DisplayScreenHistory() {
+    let screenHistoryLength = 0;
+    screenHistory.forEach((line) => {
+      let lineLen = Math.ceil(line.content.length / this.lineWidthChars);
+      screenHistoryLength += lineLen;
+    });
+    let historyLinesToDisplay = Math.min(screenHistoryLength,
+      this.displayLenInLines - 5);
+    console.log("DISPLAY HIST LINES NUM:", historyLinesToDisplay);
+
+    let historyStartIdx = 0;
+    if (screenHistory.length > historyLinesToDisplay) {
+      historyStartIdx = screenHistory.length - historyLinesToDisplay;
+    }
+
+    for (let i = historyStartIdx; i < screenHistory.length; i++) {
+      this.DisplayLine(screenHistory[i].type, screenHistory[i].content);
     }
   }
 
@@ -264,7 +268,7 @@ class Terminal {
     this.p5.textFont("monospace", fontSize);
     if (type === SCREEN_ENTRY_USER_TYPE) {
       this.p5.fill(this.cursor.color);;
-      this.p5.text(shellIcon, leftMargin, this.lineNum * lineHeight + this.bot.screenHeight);
+      line = shellIcon + line;
     } else if (type === PS2_TYPE) {
       this.p5.fill(this.PS2Color);;
     } else {
@@ -278,8 +282,6 @@ class Terminal {
     let maxCharsPerLine = Math.floor((this.p5.width - leftMargin - rightMargin) / fontWidth);
     let charCount = 0;
     let posX = leftMargin;
-    if (type === SCREEN_ENTRY_USER_TYPE) posX += fontWidth;
-    console.log(posX);
 
     let wurds = line.split(" ");
     while (wurds.length) {
@@ -287,7 +289,6 @@ class Terminal {
       if (wurd.length > (maxCharsPerLine - charCount)) {
         this.lineNum++;
         posX = leftMargin;
-        console.log(posX);
         charCount = 0;
       }
       let posY = this.lineNum * lineHeight + this.bot.screenHeight;

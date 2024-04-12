@@ -22,6 +22,14 @@ export class FileSystem {
     home.AddSubDirectory(new Directory(home, "mdaemon"));
     this.root.AddSubDirectory(home);
     this.root.AddSubDirectory(new Directory(this.root, "var"));
+    this.root.AddSubDirectory(new Directory(this.root, "lib", "THE_LIBRARY"));
+  }
+
+  GetDir(dirname) {
+    let dirHandle = this.GetHandle(dirname);
+    if (dirHandle) {
+      return dirHandle;
+    }
   }
 
   GetDirPath(dirname) {

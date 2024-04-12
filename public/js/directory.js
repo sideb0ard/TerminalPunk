@@ -1,8 +1,9 @@
 export class Directory {
-  constructor(parent, name) {
+  constructor(parent, name, action = "none") {
     this.parent = parent;
     this.name = name;
     this.subdirs = new Map();
+    this.action = action;
   }
 
   Name() {
