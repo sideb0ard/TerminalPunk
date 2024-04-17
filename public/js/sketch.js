@@ -7,6 +7,7 @@ export default function sketch(p) {
   p.terminal;
   p.hiddenInput;
   p.backg = 0;
+  p.img;
 
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight);

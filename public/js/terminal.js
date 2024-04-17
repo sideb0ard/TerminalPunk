@@ -7,6 +7,10 @@ import {
 } from "./computer.js"
 
 import {
+  TheLibrary,
+} from "./the_library/lib.js"
+
+import {
   Environment,
   Modes
 } from "./environment.js"
@@ -112,6 +116,7 @@ class Terminal {
   constructor(p) {
     this.p5 = p;
     this.computer = new Computer(p);
+    this.the_library = new TheLibrary(p);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     if (navigator.maxTouchPoints > 1) {
@@ -127,6 +132,7 @@ class Terminal {
     this.bot = new Bot(p);
     this.shouldDisplayBot = true;
 
+
     this.PS2Display;
     this.lineNum = 1;
     this.displayLenInLines = 0;
@@ -137,19 +143,15 @@ class Terminal {
 
   }
 
+  // main entry point
   RefreshDisplay() {
     if (Environment.mode == Modes.THE_LIBRARY) {
-      this.LibraryGameLoop();
+      this.the_library.GameLoop();
     } else {
       this.CommandModeLoop();
     }
   }
 
-  LibraryGameLoop() {
-    if (this.shouldDisplayBot) {
-      this.bot.Display();
-    }
-  }
 
   CommandModeLoop() {
     this.displayLenInLines = Math.floor(this.p5.height / lineHeight);
@@ -185,61 +187,66 @@ class Terminal {
   }
 
   KeyPressed(keyCode, key) {
-    if (key == 'Backspace') {
-      if (lineBuffer.length > 0) {
-        lineBuffer = lineBuffer.substring(0, lineBuffer.length - 1);
-      }
-    }
-    if (keyCode == 76 || keyCode == 68) {
-      if (this.p5.keyIsDown(this.p5.CONTROL)) {
-        screenHistory = [];
-        return;
-      }
-    }
-    if (keyCode == 85) {
-      if (this.p5.keyIsDown(this.p5.CONTROL)) {
-        lineBuffer = "";
-        return;
-      }
-    }
-    if (isPrintable(keyCode)) {
-      lineBuffer = lineBuffer + key;
-    }
-
-    if (key == 'ArrowUp') {
-      if (historyIdx == history.length) {
-        lineBufferTmp = lineBuffer;
-      }
-      if (historyIdx > 0) {
-        lineBuffer = history[historyIdx - 1];
-        historyIdx--;
-      }
-    }
-
-    if (key == 'ArrowDown') {
-      if (historyIdx < history.length) {
-        historyIdx++;
-        if (historyIdx == history.length) {
-          lineBuffer = lineBufferTmp;
-        } else if (historyIdx < history.length) {
-          lineBuffer = history[historyIdx];
+    if (Environment.mode == Modes.COMMAND || Environment.mode == Modes.INTRO) {
+      if (key == 'Backspace') {
+        if (lineBuffer.length > 0) {
+          lineBuffer = lineBuffer.substring(0, lineBuffer.length - 1);
         }
       }
-    }
-
-    if (key == 'Escape') {
-      Environment.mode = Modes.COMMAND;
-    }
-
-    if (key == 'Enter') {
-      this.computer.Read(lineBuffer);
-      screenHistory.push(new HistoryEntry(PS2_TYPE, this.PS2Display));
-      screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
-      if (lineBuffer.length > 0) {
-        history.push(lineBuffer);
-        historyIdx = history.length;
+      if (keyCode == 76 || keyCode == 68) {
+        if (this.p5.keyIsDown(this.p5.CONTROL)) {
+          screenHistory = [];
+          return;
+        }
       }
-      lineBuffer = "";
+      if (keyCode == 85) {
+        if (this.p5.keyIsDown(this.p5.CONTROL)) {
+          lineBuffer = "";
+          return;
+        }
+      }
+      if (isPrintable(keyCode)) {
+        lineBuffer = lineBuffer + key;
+      }
+
+      if (key == 'ArrowUp') {
+        if (historyIdx == history.length) {
+          lineBufferTmp = lineBuffer;
+        }
+        if (historyIdx > 0) {
+          lineBuffer = history[historyIdx - 1];
+          historyIdx--;
+        }
+      }
+
+      if (key == 'ArrowDown') {
+        if (historyIdx < history.length) {
+          historyIdx++;
+          if (historyIdx == history.length) {
+            lineBuffer = lineBufferTmp;
+          } else if (historyIdx < history.length) {
+            lineBuffer = history[historyIdx];
+          }
+        }
+      }
+
+      if (key == 'Enter') {
+        this.computer.Read(lineBuffer);
+        screenHistory.push(new HistoryEntry(PS2_TYPE, this.PS2Display));
+        screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
+        if (lineBuffer.length > 0) {
+          history.push(lineBuffer);
+          historyIdx = history.length;
+        }
+        lineBuffer = "";
+      }
+    } else if (Environment.mode == Modes.THE_LIBRARY) {
+      if (key == 'Escape') {
+        Environment.mode = Modes.COMMAND;
+      } else {
+        this.the_library.KeyPressed(key);
+      }
+
     }
   }
 
@@ -251,7 +258,7 @@ class Terminal {
     });
     let historyLinesToDisplay = Math.min(screenHistoryLength,
       this.displayLenInLines - 5);
-    console.log("DISPLAY HIST LINES NUM:", historyLinesToDisplay);
+    //console.log("DISPLAY HIST LINES NUM:", historyLinesToDisplay);
 
     let historyStartIdx = 0;
     if (screenHistory.length > historyLinesToDisplay) {
