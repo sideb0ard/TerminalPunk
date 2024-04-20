@@ -1,7 +1,57 @@
 const willy_width = 68;
 const willy_height = 121;
 
-const current_floor_level = 50;
+const current_floor_level = 10;
+const num_bookshelves = 4;
+const bookshelf_thickness = 10;
+const avg_book_width = 40;
+const shelf_color = "Cyan";
+const shelf_interior = "black";
+const book_color = "Blue";
+
+
+class Book {
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+  }
+  Draw(p5) {
+    p5.fill(book_color);
+    p5.rect(this.x, this.y, this.width, this.height);
+  }
+}
+
+class Bookshelf {
+  constructor(x, y, width, height) {
+    console.log("TREAT YO SHELF! ", x, y, width, height);
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
+    let cur_x = bookshelf_thickness;
+    this.bookshelf = [];
+    while (cur_x < width - bookshelf_thickness) {
+      let book_wid = avg_book_width + (Math.random() * 10 - avg_book_width / 4);
+      let book_height = height - (Math.random() * 30) - 20;
+      if (cur_x + book_wid < width - bookshelf_thickness) {
+        this.bookshelf.push(new Book(cur_x, this.y + bookshelf_thickness + this.height - book_height, book_wid, book_height - bookshelf_thickness * 2));
+      }
+      cur_x += book_wid + 2;
+    }
+  }
+
+  Draw(p5) {
+    p5.fill(shelf_color);
+    p5.rect(this.x, this.y, this.width, this.height);
+    p5.fill(shelf_interior);
+    p5.rect(this.x + bookshelf_thickness, this.y + bookshelf_thickness, this.width - 2 * bookshelf_thickness, this.height - 2 * bookshelf_thickness);
+    this.bookshelf.forEach((b) => {
+      b.Draw(p5);
+    });
+  }
+}
 
 class Character {
   constructor(width, height, position, velocity, left_imgz, right_imgz, direction) {
@@ -59,7 +109,6 @@ class Character {
     } else {
       this.position.y = this.position.y + (this.falling_speed * this.velocity.y);
     }
-    console.log("XY:", this.position.x, this.position.y);
     if (this.is_jumping) {
       this.velocity.y = -this.jump_power;
     } else {
@@ -96,11 +145,21 @@ export class TheLibrary {
     console.log("AGENVEL:", willy_velocity);
     this.willy = new Character(willy_width, willy_height, willy_position, willy_velocity, this.willys_left, this.willys_right, "RIGHT");
 
+    this.shelves = [];
+    let shelf_height = p5.windowHeight / 4;
+    let shelf_width = p5.windowWidth;
+    for (let i = 0; i < num_bookshelves; i++) {
+      this.shelves.push(new Bookshelf(0, i * shelf_height, shelf_width, shelf_height));
+    }
+
   }
 
   KeyPressed(key) {}
 
   GameLoop() {
+    this.shelves.forEach((s) => {
+      s.Draw(this.p5);
+    });
     this.willy.Run(this.p5);
     //console.log(this.willys_idx, this.current_willy);
     //console.log(this.current_willy[this.willys_idx]);

@@ -30,7 +30,7 @@ let bottomMargin = lineHeight * 2;
 
 let cursorX = 0;
 const shellIcon = ">";
-const PS2Line = "orion@terminalpunk";
+const PS2Line = Environment.user_name + "@terminalpunk";
 
 let cursorBlinkOnTime = 40;
 let cursorBlinkOffTime = 20;
@@ -173,7 +173,7 @@ class Terminal {
       }
     } else {
       this.bot.isTalking = false;
-      let displayDir = ("/home/orion" === Environment.pwd) ? "~" : Environment.pwd;
+      let displayDir = ("/home/" + Environment.user_name === Environment.pwd) ? "~" : Environment.pwd;
       this.PS2Display = PS2Line + " [" + displayDir + "]";
       this.DisplayLine(PS2_TYPE, this.PS2Display);
       this.DisplayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
@@ -187,7 +187,7 @@ class Terminal {
   }
 
   KeyPressed(keyCode, key) {
-    if (Environment.mode == Modes.COMMAND || Environment.mode == Modes.INTRO) {
+    if (Environment.mode == Modes.COMMAND) {
       if (key == 'Backspace') {
         if (lineBuffer.length > 0) {
           lineBuffer = lineBuffer.substring(0, lineBuffer.length - 1);

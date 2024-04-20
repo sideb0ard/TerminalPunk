@@ -10,7 +10,7 @@ import {
 } from "./environment.js"
 
 
-const intro = "Hi hi! you look new here. Want some instructions?";
+const intro = "Hi hi!";
 // const intro = "LO";
 //const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
 // const yourName = "Iron Dollar Adamson";
@@ -35,7 +35,7 @@ class Computer {
     this.currentLine = 1;
     this.devmode = true;
     Environment.fs = new FileSystem();
-    Environment.pwd = "/home/orion";
+    Environment.pwd = "/home/willy";
   }
 
   // called from keypress == Enter, defined in Terminal
@@ -44,16 +44,8 @@ class Computer {
     this.isComputing = true;
     this.responseLine = "";
     if (this.inputLine.length > 0) {
-      if (Environment.mode === Modes.INTRO) {
-        if (!this.inputLine.match(/no/g)) {
-          console.log("HE SAID YES!");
-          this.responseLine = instructions;
-        }
-        Environment.mode = Modes.COMMAND;
-      } else {
-        let resp = Interpret(Environment, this.inputLine);
-        if (resp !== "n~ll") this.responseLine = resp;
-      }
+      let resp = Interpret(Environment, this.inputLine);
+      if (resp !== "n~ll") this.responseLine = resp;
     }
     this.responseIdx = 0;
   }
