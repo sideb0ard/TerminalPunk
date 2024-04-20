@@ -13,7 +13,7 @@ class Character {
     this.width = width;
     this.height = height;
     this.is_jumping = false;
-    this.jump_power = 10;
+    this.jump_power = 6;
     this.jump_counter = 15;
     this.falling_speed = 4;
     if (direction == "LEFT") {
