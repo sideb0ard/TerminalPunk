@@ -152,6 +152,12 @@ class Terminal {
     }
   }
 
+  ResizeDisplay(width, height) {
+    if (Environment.mode == Modes.THE_LIBRARY) {
+      this.the_library.ResizeDisplay(width, height)
+    }
+  }
+
 
   CommandModeLoop() {
     this.displayLenInLines = Math.floor(this.p5.height / lineHeight);
@@ -243,8 +249,7 @@ class Terminal {
     } else if (Environment.mode == Modes.THE_LIBRARY) {
       if (key == 'Escape') {
         Environment.mode = Modes.COMMAND;
-      } else {
-        this.the_library.KeyPressed(key);
+        Environment.pwd = "/";
       }
 
     }

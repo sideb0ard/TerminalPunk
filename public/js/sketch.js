@@ -25,5 +25,6 @@ export default function sketch(p) {
 
   p.windowResized = () => {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
+    p.terminal.ResizeDisplay(p.windowWidth, p.windowHeight)
   }
 }
