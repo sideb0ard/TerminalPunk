@@ -18,7 +18,7 @@ const intro = "Hi hi!";
 
 const instructions = "You're an ace hacker working for BCPL - The Bureau for the Containment of Programmatic Lifeforms. Your mission is to track down a rogue AI named Mat Daemon, who is loose on this file system. Using a combination of unix commands and text adventure verbs, your mission is to find, isolate and terminate his process!";
 
-const nae_touchscreen_message = "Sorry, punk, touchscreens not supported. Best viewed with a DEC VT100. (jk! desktop keyboard is also fine.)";
+const nae_touchscreen_message = "Sorry, punk, touchscreens not supported. Best viewed with a DEC VT100 terminal";
 
 const drinks = ["whiskey", "beer", "wine", "coke", "oil", "tea", "coffee", "piss", "water"];
 
