@@ -15,7 +15,6 @@ import {
   Modes
 } from "./environment.js"
 
-
 const terminalWidthInChars = 60;
 // const MARGIN = 30;
 
@@ -119,6 +118,22 @@ class Terminal {
     this.the_library = new TheLibrary(p);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
+    this.audioContext = new AudioContext();
+
+    this.audioElement = document.querySelector("audio");
+    // pass it into the audio context
+    this.track = this.audioContext.createMediaElementSource(this.audioElement);
+    this.track.connect(this.audioContext.destination);
+
+    this.audioElement.addEventListener(
+      "ended",
+      () => {
+        //this.PlayMusic(true);
+      },
+      false,
+    );
+    this.music_playing = false;
+
     if (navigator.maxTouchPoints > 1) {
       console.log("TOUCH SCREEN!");
       this.computer.SetMode(Modes.NAE_KEYBOARD);
@@ -143,11 +158,31 @@ class Terminal {
 
   }
 
+  PlayMusic(should_play) {
+    if (this.audioContext.state === "suspended") {
+      this.audioContext.resume();
+    }
+    if (should_play) {
+      //this.audioElement.play();
+    } else {
+      this.audioElement.pause();
+    }
+
+  }
+
   // main entry point
   RefreshDisplay() {
     if (Environment.mode == Modes.THE_LIBRARY) {
+      if (!this.music_playing) {
+        this.music_playing = true;
+        this.PlayMusic(this.music_playing);
+      }
       this.the_library.GameLoop();
     } else {
+      if (this.music_playing) {
+        this.music_playing = false;
+        this.PlayMusic(this.music_playing);
+      }
       this.CommandModeLoop();
     }
   }

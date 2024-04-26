@@ -51,7 +51,6 @@ export class MDaemon {
   }
 
   Run(p5) {
-    console.log("MATT DAEMON! RUN");
     let img = this.current_dir[this.animation_idx];
     if (p5.frameCount % 20 == 0) {
       this.animation_idx++;
@@ -70,7 +69,6 @@ export class MDaemon {
   Gravity(p5) {
     let shelf_height = p5.windowHeight / num_bookshelves;
     let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
-    console.log("MATT DAEMON! GRAVITYRUN", this.current_shelf, this.position.y, current_shelf_y_height);
     if (this.position.y + this.height >= (current_shelf_y_height - bookshelf_thickness)) {
       // hit the ground
       this.position.y = current_shelf_y_height - bookshelf_thickness - this.height;

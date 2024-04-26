@@ -1,10 +1,63 @@
 export const num_bookshelves = 4;
 export const bookshelf_thickness = 10;
+export const art_vol_width = 87;
+export const art_vol_height = 121;
+
 
 const avg_book_width = 40;
-const shelf_color = "Brown";
+//const shelf_color = "HotPink";
+const shelf_color = "Chartreuse";
 const shelf_interior = "black";
 const book_color = "Blue";
+
+let art_vol_1;
+let art_vol_2;
+let art_vol_3;
+let art_vol_4;
+let art_vol_5;
+let art_vol_6;
+let art_vol_7;
+
+export class ArtBook {
+  constructor(p5) {
+    this.position = p5.createVector(0, 0);
+    this.p5 = p5;
+    art_vol_1 = p5.loadImage('/images/art1.png');
+    art_vol_2 = p5.loadImage('/images/art2.png');
+    art_vol_3 = p5.loadImage('/images/art3.png');
+    art_vol_4 = p5.loadImage('/images/art4.png');
+    art_vol_5 = p5.loadImage('/images/art5.png');
+    art_vol_6 = p5.loadImage('/images/art6.png');
+    art_vol_7 = p5.loadImage('/images/art7.png');
+    this.vols = [art_vol_1, art_vol_2, art_vol_3, art_vol_4, art_vol_5, art_vol_6, art_vol_7];
+    this.vol_idx = 0;
+    this.current_shelf = Math.floor(Math.random() * num_bookshelves) + 1;
+    this.position.x = Math.random() * (p5.windowWidth - art_vol_width - bookshelf_thickness * 2) + bookshelf_thickness
+    console.log("POS X:", this.position.x);
+    this.should_display = true;
+    this.width = art_vol_width;
+    this.height = art_vol_height;
+  }
+
+  Draw(p5) {
+    if (this.should_display) {
+      let shelf_height = p5.windowHeight / num_bookshelves;
+      let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+      this.position.y = current_shelf_y_height - bookshelf_thickness - art_vol_height;
+      p5.image(this.vols[this.vol_idx], this.position.x, this.position.y, art_vol_width, art_vol_height);
+    }
+  }
+
+  Regenerate() {
+    this.vol_idx++;
+    if (this.vol_idx >= this.vols.length) {
+      this.should_display = false;
+    }
+    this.current_shelf = Math.floor(Math.random() * num_bookshelves) + 1;
+    this.position.x = Math.random() * (this.p5.windowWidth - art_vol_width - bookshelf_thickness * 2) + bookshelf_thickness
+    console.log("RGEN: POS X:", this.position.x);
+  }
+}
 
 export class Book {
   constructor(x, y, width, height) {
