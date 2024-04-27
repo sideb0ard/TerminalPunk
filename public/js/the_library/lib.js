@@ -6,7 +6,7 @@ import {
 } from "./books.js"
 
 import {
-  Willy,
+  Agent,
   MDaemon,
 } from "./characters.js"
 
@@ -24,7 +24,7 @@ export class TheLibrary {
 
   constructor(p5) {
     this.p5 = p5;
-    this.willy = new Willy(p5);
+    this.agent = new Agent(p5);
     this.mdaemon = new MDaemon(p5);
     this.art_book = new ArtBook(p5);
     this.ResizeDisplay(p5.windowWidth, p5.windowHeight);
@@ -37,7 +37,7 @@ export class TheLibrary {
     for (let i = 0; i < num_bookshelves; i++) {
       this.shelves.push(new Bookshelf(0, i * shelf_height, shelf_width, shelf_height));
     }
-    this.willy.SetJumpPower(height / 32);
+    this.agent.SetJumpPower(height / 32);
   }
 
   GameLoop() {
@@ -45,19 +45,21 @@ export class TheLibrary {
       s.Draw(this.p5);
     });
     this.art_book.Draw(this.p5);
-    this.willy.Run(this.p5);
+    this.agent.Run(this.p5);
     this.mdaemon.Run(this.p5);
-    let collision = CheckRectCollision(this.willy, this.art_book);
+    let collision = CheckRectCollision(this.agent, this.art_book);
     if (collision) {
-      // willy gets the point
+      // agent gets the point
       // regenerate book
       this.art_book.Regenerate();
+      this.mdaemon.ShootAt(this.agent.position);
     } else {
       collision = CheckRectCollision(this.mdaemon, this.art_book);
       if (collision) {
         // mdaemon gets the point
         // regenerate book
         this.art_book.Regenerate();
+        this.mdaemon.ShootAt(this.agent.position);
       }
     }
   }

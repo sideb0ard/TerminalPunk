@@ -9,6 +9,6 @@ export const Modes = Object.freeze({
 export let Environment = {
   "fs": null,
   "pwd": null,
-  "user_name": "willy",
+  "user_name": "agent",
   mode: Modes.COMMAND,
 };

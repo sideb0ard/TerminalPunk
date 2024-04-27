@@ -150,6 +150,104 @@ class Bot {
       y: 6
     }];
 
+    this.glasses = [{
+      x: 2,
+      y: 4
+    }, {
+      x: 3,
+      y: 4
+    }, {
+      x: 4,
+      y: 4
+    }, {
+      x: 5,
+      y: 4
+    }, {
+      x: 6,
+      y: 4
+    }, {
+      x: 7,
+      y: 4
+    }, {
+      x: 8,
+      y: 4
+    }, {
+      x: 9,
+      y: 4
+    }, {
+      x: 10,
+      y: 4
+    }, {
+      x: 11,
+      y: 4
+    }, {
+      x: 2,
+      y: 5
+    }, {
+      x: 3,
+      y: 5
+    }, {
+      x: 4,
+      y: 5
+    }, {
+      x: 5,
+      y: 5
+    }, {
+      x: 6,
+      y: 5
+    }, {
+      x: 7,
+      y: 5
+    }, {
+      x: 8,
+      y: 5
+    }, {
+      x: 9,
+      y: 5
+    }, {
+      x: 10,
+      y: 5
+    }, {
+      x: 11,
+      y: 5
+    }, {
+      x: 2,
+      y: 6
+    }, {
+      x: 3,
+      y: 6
+    }, {
+      x: 4,
+      y: 6
+    }, {
+      x: 5,
+      y: 6
+    }, {
+      x: 8,
+      y: 6
+    }, {
+      x: 9,
+      y: 6
+    }, {
+      x: 10,
+      y: 6
+    }, {
+      x: 11,
+      y: 6
+    }, {
+      x: 3,
+      y: 7
+    }, {
+      x: 4,
+      y: 7
+    }, {
+      x: 9,
+      y: 7
+    }, {
+      x: 10,
+      y: 7
+    }];
+
     this.openSmile = [{
         x: 3,
         y: 8
@@ -216,6 +314,26 @@ class Bot {
       },
     ];
 
+    this.glassesShine = [{
+      x: 3,
+      y: 5
+    }, {
+      x: 4,
+      y: 5
+    }, {
+      x: 9,
+      y: 5
+    }, {
+      x: 10,
+      y: 5
+    }, {
+      x: 3,
+      y: 6
+    }, {
+      x: 9,
+      y: 6
+    }];
+
     this.closedSmile = [{
       x: 4,
       y: 9
@@ -250,6 +368,7 @@ class Bot {
       this.p5.square(x, y, this.pixWidth);
     });
     this.eyes.forEach((pix) => {
+      //this.glasses.forEach((pix) => {
       let x = topx + pix.x * this.pixWidth;
       let y = topy + pix.y * this.pixWidth;
       this.p5.square(x, y, this.pixWidth);
@@ -267,6 +386,12 @@ class Bot {
         this.p5.square(x, y, this.pixWidth);
       });
     }
+    //this.p5.fill(255);
+    //this.glassesShine.forEach((pix) => {
+    //  let x = topx + pix.x * this.pixWidth;
+    //  let y = topy + pix.y * this.pixWidth;
+    //  this.p5.square(x, y, this.pixWidth);
+    //});
   }
 }
 

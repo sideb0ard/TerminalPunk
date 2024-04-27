@@ -35,7 +35,7 @@ class Computer {
     this.currentLine = 1;
     this.devmode = true;
     Environment.fs = new FileSystem();
-    Environment.pwd = "/home/willy";
+    Environment.pwd = "/home/agent";
   }
 
   // called from keypress == Enter, defined in Terminal

@@ -4,19 +4,19 @@ import {
 } from "./books.js"
 
 
-const willy_width = 76;
-const willy_height = 121;
-const willy_starting_shelf = 1;
-const willy_jump_power = 15;
+const agent_width = 76;
+const agent_height = 121;
+const agent_starting_shelf = 1;
+const agent_jump_power = 15;
 
-let willy_left_01;
-let willy_left_02;
-let willy_left_03;
-let willy_left_04;
-let willy_right_01;
-let willy_right_02;
-let willy_right_03;
-let willy_right_04;
+let agent_left_01;
+let agent_left_02;
+let agent_left_03;
+let agent_left_04;
+let agent_right_01;
+let agent_right_02;
+let agent_right_03;
+let agent_right_04;
 
 const matt_width = 121;
 const matt_height = 121;
@@ -28,6 +28,19 @@ let matt_left_03;
 let matt_right_01;
 let matt_right_02;
 let matt_right_03;
+
+class Laser {
+  constructor(p5) {
+    this.p5 = p5;
+    this.position = p5.createVector(0, 0);
+    this.velocity = p5.createVector(2, 2);
+  }
+  Shoot() {
+    this.position.add(this.velocity);
+    this.p5.fill(255, 0, 0);
+    this.p5.circle(this.position.x, this.position.y, 15);
+  }
+}
 
 export class MDaemon {
   constructor(p5) {
@@ -48,6 +61,20 @@ export class MDaemon {
     this.current_dir = this.left;
     this.current_shelf = matt_starting_shelf;
     console.log("MATT DAEMON!");
+    this.laser_eye_left = new Laser(p5);
+    this.laser_eye_right = new Laser(p5);
+    this.shooting_lasers = false;
+  }
+
+  ShootAt(player_pos) {
+    player_pos.add(agent_width / 2, agent_height / 2);
+    this.shooting_lasers = true;
+    this.laser_eye_left.position.set(this.position.x + 45, this.position.y + 45);
+    this.laser_eye_left.velocity = p5.Vector.sub(player_pos, this.laser_eye_left.position);
+    this.laser_eye_left.velocity.setMag(5);
+    this.laser_eye_right.position.set(this.position.x + 85, this.position.y + 45);
+    this.laser_eye_right.velocity = p5.Vector.sub(player_pos, this.laser_eye_right.position);
+    this.laser_eye_right.velocity.setMag(5);
   }
 
   Run(p5) {
@@ -60,9 +87,18 @@ export class MDaemon {
     this.position.x += this.velocity.x;
     if (this.position.x < 0 || this.position.x + this.width >= p5.windowWidth) {
       this.velocity.x *= -1;
+      if (this.current_dir === this.left) {
+        this.current_dir = this.right;
+      } else {
+        this.current_dir = this.left;
+      }
     }
 
     p5.image(img, this.position.x, this.position.y, this.width, this.height);
+    if (this.shooting_lasers) {
+      this.laser_eye_left.Shoot();
+      this.laser_eye_right.Shoot();
+    }
     this.Gravity(p5);
   }
 
@@ -78,28 +114,28 @@ export class MDaemon {
   }
 }
 
-export class Willy {
+export class Agent {
   constructor(p5) {
     this.position = p5.createVector(0, 0);
     this.velocity = p5.createVector(4, 15);
 
-    willy_left_01 = p5.loadImage('/images/willy_left_01.png');
-    willy_left_02 = p5.loadImage('/images/willy_left_02.png');
-    willy_left_03 = p5.loadImage('/images/willy_left_03.png');
-    willy_left_04 = p5.loadImage('/images/willy_left_04.png');
+    agent_left_01 = p5.loadImage('/images/willy_left_01.png');
+    agent_left_02 = p5.loadImage('/images/willy_left_02.png');
+    agent_left_03 = p5.loadImage('/images/willy_left_03.png');
+    agent_left_04 = p5.loadImage('/images/willy_left_04.png');
 
-    willy_right_01 = p5.loadImage('/images/willy_right_01.png');
-    willy_right_02 = p5.loadImage('/images/willy_right_02.png');
-    willy_right_03 = p5.loadImage('/images/willy_right_03.png');
-    willy_right_04 = p5.loadImage('/images/willy_right_04.png');
+    agent_right_01 = p5.loadImage('/images/willy_right_01.png');
+    agent_right_02 = p5.loadImage('/images/willy_right_02.png');
+    agent_right_03 = p5.loadImage('/images/willy_right_03.png');
+    agent_right_04 = p5.loadImage('/images/willy_right_04.png');
 
-    this.left = [willy_left_01, willy_left_02, willy_left_03, willy_left_04];
-    this.right = [willy_right_01, willy_right_02, willy_right_03, willy_right_04];
+    this.left = [agent_left_01, agent_left_02, agent_left_03, agent_left_04];
+    this.right = [agent_right_01, agent_right_02, agent_right_03, agent_right_04];
 
     this.animation_idx = 0;
-    this.width = willy_width;
-    this.height = willy_height;
-    this.current_shelf = willy_starting_shelf;
+    this.width = agent_width;
+    this.height = agent_height;
+    this.current_shelf = agent_starting_shelf;
     this.current_dir = this.right;
 
     this.down_triggered = false;
@@ -107,9 +143,9 @@ export class Willy {
     this.down_countdown = 15;
 
     this.is_jumping = false;
-    this.jump_power = willy_jump_power
+    this.jump_power = agent_jump_power
     this.max_height = this.height;
-    this.jump_counter = willy_jump_power;
+    this.jump_counter = agent_jump_power;
     this.falling_speed = 4;
   }
 
