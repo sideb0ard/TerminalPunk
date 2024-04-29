@@ -20,6 +20,38 @@ function CheckRectCollision(object1, object2) {
   return false;
 }
 
+function CheckCircleRectCollision(circle_object, rect_object) {
+  //console.log("YO _ CHECK CIRCLE RECET COLL", circle_object, rect_object);
+  let test_x = circle_object.position.x;
+  let test_y = circle_object.position.y;
+
+  if (circle_object.position.x < rect_object.position.x) test_x = rect_object.position.x; // test left edge
+  else if (circle_object.position.x > rect_object.position.x + rect_object.width) test_x = rect_object.position.x + rect_object.width; // right edge
+
+  if (circle_object.position.y < rect_object.position.y) test_y = rect_object.position.y; // top_edge
+  else if (circle_object.position.y > rect_object.position.y + rect_object.height) test_y = rect_object.position.y + rect_object.height;
+
+  let dist_x = circle_object.position.x - test_x;
+  let dist_y = circle_object.position.y - test_y;
+  let distance = Math.sqrt((dist_x * dist_x) + (dist_y * dist_y));
+  let radius = circle_object.height / 2;
+
+  if (distance <= radius) {
+    console.log("DISATANCE:", distance, " RADOIS:", radius);
+    return true;
+  }
+  return false;
+}
+
+function CheckLazerCollision(mdaemon, agent) {
+  if (mdaemon.shooting_lasers && (CheckCircleRectCollision(mdaemon.laser_eye_left, agent) || CheckCircleRectCollision(mdaemon.laser_eye_right, agent))) {
+    console.log("LAZER COLLISIOn - YYEYYEAHA");
+    //mdaemon.shooting_lasers = false;
+    agent.Regenerate();
+    //mdaemon.ShootAt(agent);
+  }
+}
+
 export class TheLibrary {
 
   constructor(p5) {
@@ -27,6 +59,7 @@ export class TheLibrary {
     this.agent = new Agent(p5);
     this.mdaemon = new MDaemon(p5);
     this.art_book = new ArtBook(p5);
+    this.mdaemon.ShootAt(this.agent.position);
     this.ResizeDisplay(p5.windowWidth, p5.windowHeight);
   }
 
@@ -46,22 +79,25 @@ export class TheLibrary {
     });
     this.art_book.Draw(this.p5);
     this.agent.Run(this.p5);
-    this.mdaemon.Run(this.p5);
+    this.mdaemon.Run(this.p5, this.agent);
+
     let collision = CheckRectCollision(this.agent, this.art_book);
     if (collision) {
       // agent gets the point
       // regenerate book
       this.art_book.Regenerate();
-      this.mdaemon.ShootAt(this.agent.position);
+      //this.mdaemon.ShootAt(this.agent.position);
     } else {
       collision = CheckRectCollision(this.mdaemon, this.art_book);
       if (collision) {
         // mdaemon gets the point
         // regenerate book
         this.art_book.Regenerate();
-        this.mdaemon.ShootAt(this.agent.position);
+        //this.mdaemon.ShootAt(this.agent.position);
       }
     }
+
+    CheckLazerCollision(this.mdaemon, this.agent);
   }
 
 }

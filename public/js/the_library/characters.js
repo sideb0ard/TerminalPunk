@@ -6,8 +6,9 @@ import {
 
 const agent_width = 76;
 const agent_height = 121;
-const agent_starting_shelf = 1;
+const agent_starting_shelf = 4;
 const agent_jump_power = 15;
+const num_agent_lives = 5;
 
 let agent_left_01;
 let agent_left_02;
@@ -29,22 +30,35 @@ let matt_right_01;
 let matt_right_02;
 let matt_right_03;
 
+function IsOutsideScreen(object, p5) {
+  if (object.position.x + object.width > p5.windowWidth || object.position.x < 0 || object.position.y + object.height > p5.windowHeight || object.position.y < 0) {
+    return true;
+  }
+  return false;
+}
+
 class Laser {
   constructor(p5) {
     this.p5 = p5;
     this.position = p5.createVector(0, 0);
     this.velocity = p5.createVector(2, 2);
+    this.width = 15;
+    this.height = 15;
   }
   Shoot() {
+    let x = this.position.x - this.velocity.x;
+    let y = this.position.y - this.velocity.y;
     this.position.add(this.velocity);
+    this.p5.fill(235, 107, 52);
+    this.p5.circle(x, y, 10);
     this.p5.fill(255, 0, 0);
-    this.p5.circle(this.position.x, this.position.y, 15);
+    this.p5.circle(this.position.x, this.position.y, this.width);
   }
 }
 
 export class MDaemon {
   constructor(p5) {
-    this.position = p5.createVector(0, 0);
+    this.position = p5.createVector(p5.windowWidth - matt_width - bookshelf_thickness / 2, 0);
     this.velocity = p5.createVector(4, 15);
     matt_left_01 = p5.loadImage('/images/CAT-left-1.png');
     matt_left_02 = p5.loadImage('/images/CAT-left-2.png');
@@ -63,10 +77,12 @@ export class MDaemon {
     console.log("MATT DAEMON!");
     this.laser_eye_left = new Laser(p5);
     this.laser_eye_right = new Laser(p5);
-    this.shooting_lasers = false;
+    this.shooting_lasers = true;
   }
 
-  ShootAt(player_pos) {
+  ShootAt(player_pos_source) {
+    console.log("SHOULD AT:", player_pos_source);
+    let player_pos = player_pos_source.copy();
     player_pos.add(agent_width / 2, agent_height / 2);
     this.shooting_lasers = true;
     this.laser_eye_left.position.set(this.position.x + 45, this.position.y + 45);
@@ -77,7 +93,7 @@ export class MDaemon {
     this.laser_eye_right.velocity.setMag(5);
   }
 
-  Run(p5) {
+  Run(p5, target) {
     let img = this.current_dir[this.animation_idx];
     if (p5.frameCount % 20 == 0) {
       this.animation_idx++;
@@ -100,6 +116,11 @@ export class MDaemon {
       this.laser_eye_right.Shoot();
     }
     this.Gravity(p5);
+    if (IsOutsideScreen(this.laser_eye_left, p5) && IsOutsideScreen(this.laser_eye_right, p5)) {
+      console.log("OUTSIDE SCREEN - LETS RESET!");
+      this.ShootAt(target.position);
+      //this.shooting_lasers = false;
+    }
   }
 
   Gravity(p5) {
@@ -147,6 +168,7 @@ export class Agent {
     this.max_height = this.height;
     this.jump_counter = agent_jump_power;
     this.falling_speed = 4;
+    this.num_lives = num_agent_lives;
   }
 
   Move(direction) {
@@ -157,17 +179,25 @@ export class Agent {
     }
   }
 
-  Run(p5) {
-    this.CheckKeys(p5);
-    this.Gravity(p5);
-    let img = this.current_dir[this.animation_idx];
-    p5.image(img, this.position.x, this.position.y, this.width, this.height);
+  Regenerate() {
+    this.position.set(0, 0);
+    this.current_shelf = agent_starting_shelf;
+    this.num_lives--;
+  }
 
-    if (this.down_triggered) {
-      this.down_counter++;
-      if (this.down_counter >= this.down_countdown) {
-        this.down_triggered = false;
-        this.down_counter = 0;
+  Run(p5) {
+    if (this.num_lives) {
+      this.CheckKeys(p5);
+      this.Gravity(p5);
+      let img = this.current_dir[this.animation_idx];
+      p5.image(img, this.position.x, this.position.y, this.width, this.height);
+
+      if (this.down_triggered) {
+        this.down_counter++;
+        if (this.down_counter >= this.down_countdown) {
+          this.down_triggered = false;
+          this.down_counter = 0;
+        }
       }
     }
   }
