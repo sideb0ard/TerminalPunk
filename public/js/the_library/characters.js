@@ -6,7 +6,7 @@ import {
 
 const agent_width = 76;
 const agent_height = 121;
-const agent_starting_shelf = 4;
+const agent_starting_shelf = 1;
 const agent_jump_power = 15;
 const num_agent_lives = 5;
 
@@ -41,18 +41,40 @@ class Laser {
   constructor(p5) {
     this.p5 = p5;
     this.position = p5.createVector(0, 0);
-    this.velocity = p5.createVector(2, 2);
+    this.velocity = p5.createVector(3, 3);
     this.width = 15;
     this.height = 15;
+    this.cols = [];
+    this.cols.push(p5.color(245, 252, 1));
+    this.cols.push(p5.color(255, 0, 0));
+    this.cols.push(p5.color(252, 146, 1));
+    this.cols.push(p5.color(255, 216, 0));
+    this.cols.push(p5.color(255, 31, 0));
+    this.cols.push(p5.color(180, 38, 18));
+    this.cols.push(p5.color(180, 38, 18));
+    this.cols.push(p5.color(255, 255, 255));
+    this.col_ix = 0;
+
   }
   Shoot() {
-    let x = this.position.x - this.velocity.x;
-    let y = this.position.y - this.velocity.y;
     this.position.add(this.velocity);
-    this.p5.fill(235, 107, 52);
-    this.p5.circle(x, y, 10);
-    this.p5.fill(255, 0, 0);
-    this.p5.circle(this.position.x, this.position.y, this.width);
+    let circ = 15;
+    for (let i = 0; i < 5; i++) {
+      //this.p5.fill(255, 0, 0);
+      this.p5.fill(this.cols[this.col_ix]);
+      this.col_ix = (this.col_ix + 1) % this.cols.length;
+      let x = this.position.x - i * this.velocity.x * 2;
+      let y = this.position.y - i * this.velocity.y * 2;
+      let diam = circ - i * 3;
+      this.p5.square(x, y, diam);
+      //for (let i = 0; i < 5; i++) {
+      //  let wee_x = x - this.p5.random(-diam / 2, diam / 2);
+      //  let wee_y = y - this.p5.random(-diam / 2, diam / 2);
+      //  this.p5.fill(this.cols[this.col_ix]);
+      //  this.col_ix = (this.col_ix + 1) % this.cols.length;
+      //  this.p5.square(wee_x, wee_y, diam / 3);
+      //}
+    }
   }
 }
 
