@@ -59,6 +59,17 @@ class LsStatement extends Statement {
   }
 }
 
+class CatStatement extends Statement {
+  constructor(token) {
+    super(token);
+    this.target_;
+  }
+  String() {
+    console.log(this.token_.literal + " " + this.target_);
+  }
+}
+
+
 
 class CdStatement extends Statement {
   constructor(token) {
@@ -164,6 +175,7 @@ class Program extends Node {
 
 export {
   Boolean,
+  CatStatement,
   CdStatement,
   Expression,
   ExpressionStatement,

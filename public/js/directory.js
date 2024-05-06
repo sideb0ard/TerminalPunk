@@ -2,6 +2,7 @@ export class Directory {
   constructor(parent, name, action = "none") {
     this.parent = parent;
     this.name = name;
+    this.files = new Map();
     this.subdirs = new Map();
     this.action = action;
   }
@@ -12,6 +13,10 @@ export class Directory {
 
   AddSubDirectory(dir) {
     this.subdirs.set(dir.Name(), dir);
+  }
+
+  AddFile(filename) {
+    this.files.set(filename.Name(), filename);
   }
 
   GetParent() {
@@ -43,7 +48,29 @@ export class Directory {
     this.subdirs.forEach((value, key) => {
       reply.push(key);
     });
+    this.files.forEach((value, key) => {
+      reply.push(key);
+    });
     return reply.sort().join(' ');
   }
+}
 
+export class File {
+  constructor(name) {
+    this.name = name;
+    this.contents = "";
+  }
+
+  Name() {
+    return this.name;
+  }
+
+
+  SetContents(text) {
+    this.contents = text;
+  }
+
+  GetContents() {
+    return this.contents;
+  }
 }

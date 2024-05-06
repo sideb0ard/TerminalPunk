@@ -19,16 +19,26 @@ let agent_right_02;
 let agent_right_03;
 let agent_right_04;
 
-const matt_width = 121;
-const matt_height = 121;
-const matt_starting_shelf = 4;
+const cat_width = 121;
+const cat_height = 121;
+const cat_starting_shelf = 4;
 
-let matt_left_01;
-let matt_left_02;
-let matt_left_03;
-let matt_right_01;
-let matt_right_02;
-let matt_right_03;
+let cat_left_01;
+let cat_left_02;
+let cat_right_01;
+let cat_right_02;
+
+const dino_width = 100; // orig 494
+const dino_height = 110; // orig 551
+const dino_starting_shelf = 3;
+let dino_left_01;
+let dino_left_02;
+let dino_left_03;
+let dino_left_04;
+let dino_right_01;
+let dino_right_02;
+let dino_right_03;
+let dino_right_04;
 
 function IsOutsideScreen(object, p5) {
   if (object.position.x + object.width > p5.windowWidth || object.position.x < 0 || object.position.y + object.height > p5.windowHeight || object.position.y < 0) {
@@ -78,24 +88,24 @@ class Laser {
   }
 }
 
-export class MDaemon {
+export class Cat {
   constructor(p5) {
-    this.position = p5.createVector(p5.windowWidth - matt_width - bookshelf_thickness / 2, 0);
+    this.position = p5.createVector(p5.windowWidth - cat_width - bookshelf_thickness / 2, 0);
     this.velocity = p5.createVector(4, 15);
-    matt_left_01 = p5.loadImage('/images/CAT-left-1.png');
-    matt_left_02 = p5.loadImage('/images/CAT-left-2.png');
+    cat_left_01 = p5.loadImage('/images/CAT-left-1.png');
+    cat_left_02 = p5.loadImage('/images/CAT-left-2.png');
 
-    matt_right_01 = p5.loadImage('/images/CAT-right-1.png');
-    matt_right_02 = p5.loadImage('/images/CAT-right-2.png');
+    cat_right_01 = p5.loadImage('/images/CAT-right-1.png');
+    cat_right_02 = p5.loadImage('/images/CAT-right-2.png');
 
-    this.left = [matt_left_01, matt_left_02];
-    this.right = [matt_right_01, matt_right_02];
+    this.left = [cat_left_01, cat_left_02];
+    this.right = [cat_right_01, cat_right_02];
 
     this.animation_idx = 0;
-    this.width = matt_width;
-    this.height = matt_height;
+    this.width = cat_width;
+    this.height = cat_height;
     this.current_dir = this.left;
-    this.current_shelf = matt_starting_shelf;
+    this.current_shelf = cat_starting_shelf;
     console.log("MATT DAEMON!");
     this.laser_eye_left = new Laser(p5);
     this.laser_eye_right = new Laser(p5);
@@ -156,6 +166,64 @@ export class MDaemon {
     }
   }
 }
+
+export class Dino {
+  constructor(p5) {
+    this.position = p5.createVector(p5.windowWidth - dino_width - bookshelf_thickness / 2, 0);
+    this.velocity = p5.createVector(4, 15);
+    dino_right_01 = p5.loadImage('/images/dino-left-1.png');
+    dino_right_02 = p5.loadImage('/images/dino-left-2.png');
+    dino_right_03 = p5.loadImage('/images/dino-left-3.png');
+    dino_right_04 = p5.loadImage('/images/dino-left-4.png');
+
+    dino_left_01 = p5.loadImage('/images/dino-right-1.png');
+    dino_left_02 = p5.loadImage('/images/dino-right-2.png');
+    dino_left_03 = p5.loadImage('/images/dino-right-3.png');
+    dino_left_04 = p5.loadImage('/images/dino-right-4.png');
+
+    this.left = [dino_left_01, dino_left_02, dino_left_03, dino_left_04];
+    this.right = [dino_right_01, dino_right_02, dino_right_03, dino_right_04];
+
+    this.animation_idx = 0;
+    this.width = dino_width;
+    this.height = dino_height;
+    this.current_dir = this.left;
+    this.current_shelf = dino_starting_shelf;
+  }
+
+  Run(p5, target) {
+    let img = this.current_dir[this.animation_idx];
+    if (p5.frameCount % 20 == 0) {
+      this.animation_idx++;
+      if (this.animation_idx == this.left.length) this.animation_idx = 0;
+    }
+
+    this.position.x += this.velocity.x;
+    if (this.position.x < 0 || this.position.x + this.width >= p5.windowWidth) {
+      this.velocity.x *= -1;
+      if (this.current_dir === this.left) {
+        this.current_dir = this.right;
+      } else {
+        this.current_dir = this.left;
+      }
+    }
+
+    p5.image(img, this.position.x, this.position.y, this.width, this.height);
+    this.Gravity(p5);
+  }
+
+  Gravity(p5) {
+    let shelf_height = p5.windowHeight / num_bookshelves;
+    let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+    if (this.position.y + this.height >= (current_shelf_y_height - bookshelf_thickness)) {
+      // hit the ground
+      this.position.y = current_shelf_y_height - bookshelf_thickness - this.height;
+    } else {
+      this.position.y = this.position.y + this.velocity.y;
+    }
+  }
+}
+
 
 export class Agent {
   constructor(p5) {

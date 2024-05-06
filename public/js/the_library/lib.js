@@ -7,7 +7,8 @@ import {
 
 import {
   Agent,
-  MDaemon,
+  Cat,
+  Dino,
 } from "./characters.js"
 
 function CheckRectCollision(object1, object2) {
@@ -43,12 +44,12 @@ function CheckCircleRectCollision(circle_object, rect_object) {
   return false;
 }
 
-function CheckLazerCollision(mdaemon, agent) {
-  if (mdaemon.shooting_lasers && (CheckCircleRectCollision(mdaemon.laser_eye_left, agent) || CheckCircleRectCollision(mdaemon.laser_eye_right, agent))) {
+function CheckLazerCollision(cat, agent) {
+  if (cat.shooting_lasers && (CheckCircleRectCollision(cat.laser_eye_left, agent) || CheckCircleRectCollision(cat.laser_eye_right, agent))) {
     console.log("LAZER COLLISIOn - YYEYYEAHA");
-    //mdaemon.shooting_lasers = false;
+    //cat.shooting_lasers = false;
     agent.Regenerate();
-    //mdaemon.ShootAt(agent);
+    //cat.ShootAt(agent);
   }
 }
 
@@ -57,9 +58,10 @@ export class TheLibrary {
   constructor(p5) {
     this.p5 = p5;
     this.agent = new Agent(p5);
-    this.mdaemon = new MDaemon(p5);
+    this.cat = new Cat(p5);
+    this.dino = new Dino(p5);
     this.art_book = new ArtBook(p5);
-    this.mdaemon.ShootAt(this.agent.position);
+    this.cat.ShootAt(this.agent.position);
     this.ResizeDisplay(p5.windowWidth, p5.windowHeight);
   }
 
@@ -79,25 +81,15 @@ export class TheLibrary {
     });
     this.art_book.Draw(this.p5);
     this.agent.Run(this.p5);
-    this.mdaemon.Run(this.p5, this.agent);
+    this.cat.Run(this.p5, this.agent);
+    this.dino.Run(this.p5, this.agent);
 
     let collision = CheckRectCollision(this.agent, this.art_book);
     if (collision) {
-      // agent gets the point
-      // regenerate book
       this.art_book.Regenerate();
-      //this.mdaemon.ShootAt(this.agent.position);
-    } else {
-      collision = CheckRectCollision(this.mdaemon, this.art_book);
-      if (collision) {
-        // mdaemon gets the point
-        // regenerate book
-        this.art_book.Regenerate();
-        //this.mdaemon.ShootAt(this.agent.position);
-      }
     }
 
-    CheckLazerCollision(this.mdaemon, this.agent);
+    CheckLazerCollision(this.cat, this.agent);
   }
 
 }

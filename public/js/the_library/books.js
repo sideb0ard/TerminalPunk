@@ -13,7 +13,10 @@ const book_color = "Blue";
 let art_vol_1;
 let art_vol_2;
 let art_vol_3;
-let art_vol_4;
+let art_vol_4a;
+let art_vol_4b;
+let art_vol_4c;
+let art_vol_4d;
 let art_vol_5;
 let art_vol_6;
 let art_vol_7;
@@ -25,11 +28,14 @@ export class ArtBook {
     art_vol_1 = p5.loadImage('/images/art1.png');
     art_vol_2 = p5.loadImage('/images/art2.png');
     art_vol_3 = p5.loadImage('/images/art3.png');
-    art_vol_4 = p5.loadImage('/images/art4.png');
+    art_vol_4a = p5.loadImage('/images/art4a.png');
+    art_vol_4b = p5.loadImage('/images/art4b.png');
+    art_vol_4c = p5.loadImage('/images/art4c.png');
+    art_vol_4d = p5.loadImage('/images/art4d.png');
     art_vol_5 = p5.loadImage('/images/art5.png');
     art_vol_6 = p5.loadImage('/images/art6.png');
     art_vol_7 = p5.loadImage('/images/art7.png');
-    this.vols = [art_vol_1, art_vol_2, art_vol_3, art_vol_4, art_vol_5, art_vol_6, art_vol_7];
+    this.vols = [art_vol_1, art_vol_2, art_vol_3, art_vol_4a, art_vol_4b, art_vol_4c, art_vol_4d, art_vol_5, art_vol_6, art_vol_7];
     this.vol_idx = 0;
     this.current_shelf = Math.floor(Math.random() * num_bookshelves) + 1;
     this.position.x = Math.random() * (p5.windowWidth - art_vol_width - bookshelf_thickness * 2) + bookshelf_thickness

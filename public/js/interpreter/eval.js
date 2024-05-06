@@ -17,6 +17,8 @@ function Eval(env, node) {
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
     return EvalLsStatement(env, node);
+  } else if (node instanceof ast.CatStatement) {
+    return EvalCatStatement(env, node);
   } else if (node instanceof ast.PwdStatement) {
     if (env && env.pwd) {
       let str = new pobject.String();
@@ -129,6 +131,26 @@ function EvalLsStatement(env, node) {
   }
   return new pobject.Null();
 }
+
+function EvalCatStatement(env, node) {
+  if (env && env.fs) {
+    let str = new pobject.String();
+    let target = "";
+    if (node.target_) {
+      if (node.target_.value_.startsWith("/")) {
+        target = node.target_.value_;
+      } else {
+        target = env.pwd + "/" + node.target_.value_;
+      }
+    } else {
+      target = env.pwd;
+    }
+    str.Append(env.fs.CatFile(target));
+    return str;
+  }
+  return new pobject.Null();
+}
+
 
 function EvalCdStatement(env, node) {
   console.log("YO EVAL CDDDD", node);

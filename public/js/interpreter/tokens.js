@@ -41,6 +41,7 @@ export const LET = "let";
 export const PWD = "pwd";
 export const CD = "cd";
 export const LS = "ls";
+export const CAT = "cat";
 export const WHO = "who";
 export const PS = "ps";
 export const HELP = "help";
@@ -50,6 +51,9 @@ export const KEYWORDS = new Map([
   ["let", LET],
   ["pwd", PWD],
   ["cd", CD],
+  ["cat", CAT],
+  ["more", CAT],
+  ["less", CAT],
   ["ls", LS],
   ["who", WHO],
   ["ps", PS],

@@ -93,6 +93,8 @@ export class Parser {
         return this.ParseCdStatement();
       case token.LS:
         return this.ParseLsStatement();
+      case token.CAT:
+        return this.ParseCatStatement();
       case token.PWD:
         return this.ParsePwdStatement();
       default:
@@ -180,6 +182,18 @@ export class Parser {
 
     return stmt;
   }
+
+  ParseCatStatement() {
+    let stmt = new ast.CatStatement(this.cur_token_);
+    stmt.target_ = this.ParsePath();
+
+    if (this.CurTokenIs(token.SEMICOLON)) {
+      this.NextToken();
+    }
+
+    return stmt;
+  }
+
 
   ParsePwdStatement() {
     let stmt = new ast.PwdStatement(this.cur_token_);
