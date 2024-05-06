@@ -22,9 +22,10 @@ let art_vol_6;
 let art_vol_7;
 
 export class ArtBook {
-  constructor(p5) {
+  constructor(p5, top_margin) {
     this.position = p5.createVector(0, 0);
     this.p5 = p5;
+    this.top_margin = top_margin;
     art_vol_1 = p5.loadImage('/images/art1.png');
     art_vol_2 = p5.loadImage('/images/art2.png');
     art_vol_3 = p5.loadImage('/images/art3.png');
@@ -47,8 +48,8 @@ export class ArtBook {
 
   Draw(p5) {
     if (this.should_display) {
-      let shelf_height = p5.windowHeight / num_bookshelves;
-      let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+      let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
+      let current_shelf_y_height = this.top_margin + (num_bookshelves + 1 - this.current_shelf) * shelf_height;
       this.position.y = current_shelf_y_height - bookshelf_thickness - art_vol_height;
       p5.image(this.vols[this.vol_idx], this.position.x, this.position.y, art_vol_width, art_vol_height);
     }

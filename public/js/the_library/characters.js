@@ -89,8 +89,9 @@ class Laser {
 }
 
 export class Cat {
-  constructor(p5) {
-    this.position = p5.createVector(p5.windowWidth - cat_width - bookshelf_thickness / 2, 0);
+  constructor(p5, top_margin) {
+    this.top_margin = top_margin;
+    this.position = p5.createVector(p5.windowWidth - cat_width - bookshelf_thickness / 2, top_margin);
     this.velocity = p5.createVector(4, 15);
     cat_left_01 = p5.loadImage('/images/CAT-left-1.png');
     cat_left_02 = p5.loadImage('/images/CAT-left-2.png');
@@ -156,19 +157,22 @@ export class Cat {
   }
 
   Gravity(p5) {
-    let shelf_height = p5.windowHeight / num_bookshelves;
+    let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
     let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+    console.log("CUR SHELF Y HEIGHT:", current_shelf_y_height);
     if (this.position.y + this.height >= (current_shelf_y_height - bookshelf_thickness)) {
       // hit the ground
-      this.position.y = current_shelf_y_height - bookshelf_thickness - this.height;
+      this.position.y = this.top_margin + (current_shelf_y_height - bookshelf_thickness - this.height);
     } else {
       this.position.y = this.position.y + this.velocity.y;
     }
+    console.log("POSY:", this.position.y);
   }
 }
 
 export class Dino {
-  constructor(p5) {
+  constructor(p5, top_margin) {
+    this.top_margin = top_margin;
     this.position = p5.createVector(p5.windowWidth - dino_width - bookshelf_thickness / 2, 0);
     this.velocity = p5.createVector(4, 15);
     dino_right_01 = p5.loadImage('/images/dino-left-1.png');
@@ -213,8 +217,8 @@ export class Dino {
   }
 
   Gravity(p5) {
-    let shelf_height = p5.windowHeight / num_bookshelves;
-    let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+    let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
+    let current_shelf_y_height = this.top_margin + ((num_bookshelves + 1 - this.current_shelf) * shelf_height);
     if (this.position.y + this.height >= (current_shelf_y_height - bookshelf_thickness)) {
       // hit the ground
       this.position.y = current_shelf_y_height - bookshelf_thickness - this.height;
@@ -226,8 +230,9 @@ export class Dino {
 
 
 export class Agent {
-  constructor(p5) {
-    this.position = p5.createVector(0, 0);
+  constructor(p5, top_margin) {
+    this.top_margin = top_margin;
+    this.position = p5.createVector(0, top_margin);
     this.velocity = p5.createVector(4, 15);
 
     agent_left_01 = p5.loadImage('/images/willy_left_01.png');
@@ -325,8 +330,8 @@ export class Agent {
   }
 
   Gravity(p5) {
-    let shelf_height = p5.windowHeight / num_bookshelves;
-    let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+    let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
+    let current_shelf_y_height = this.top_margin + ((num_bookshelves + 1 - this.current_shelf) * shelf_height);
     let next_shelf_y_height = current_shelf_y_height - shelf_height;
     if (this.position.y + this.height >= (current_shelf_y_height - bookshelf_thickness) && !this.is_jumping) {
       // hit the ground

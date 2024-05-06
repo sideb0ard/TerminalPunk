@@ -55,14 +55,15 @@ function CheckLazerCollision(cat, agent) {
 
 export class TheLibrary {
 
-  constructor(p5) {
+  constructor(p5, top_margin) {
     this.p5 = p5;
-    this.agent = new Agent(p5);
-    this.cat = new Cat(p5);
-    this.dino = new Dino(p5);
-    this.art_book = new ArtBook(p5);
+    this.top_margin = top_margin;
+    this.agent = new Agent(p5, top_margin);
+    this.cat = new Cat(p5, top_margin);
+    this.dino = new Dino(p5, top_margin);
+    this.art_book = new ArtBook(p5, top_margin);
     this.cat.ShootAt(this.agent.position);
-    this.ResizeDisplay(p5.windowWidth, p5.windowHeight);
+    this.ResizeDisplay(p5.windowWidth, p5.windowHeight - this.top_margin);
   }
 
   ResizeDisplay(width, height) {
@@ -70,7 +71,7 @@ export class TheLibrary {
     let shelf_width = width;
     let shelf_height = height / 4;
     for (let i = 0; i < num_bookshelves; i++) {
-      this.shelves.push(new Bookshelf(0, i * shelf_height, shelf_width, shelf_height));
+      this.shelves.push(new Bookshelf(0, this.top_margin + (i * shelf_height), shelf_width, shelf_height));
     }
     this.agent.SetJumpPower(height / 32);
   }

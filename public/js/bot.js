@@ -1,10 +1,12 @@
 // const BotWidth = 14;
 // const this.pixWidth = 7;
 
+const BOT_DISPLAY_HEIGHT = 120;
+
 class Bot {
   constructor(p) {
     this.p5 = p;
-    this.screenHeight = 110;
+    this.screenHeight = BOT_DISPLAY_HEIGHT;
     this.pixWidth = 7;
     this.head = [{
         y: 0,
@@ -358,6 +360,8 @@ class Bot {
   }
 
   Display() {
+    this.p5.fill(0, 0, 0);
+    this.p5.rect(0, 0, this.p5.windowWidth, BOT_DISPLAY_HEIGHT);
     let topx = 10;
     let topy = 10;
     this.p5.noStroke();

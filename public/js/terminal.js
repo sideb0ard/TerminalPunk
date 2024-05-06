@@ -115,7 +115,8 @@ class Terminal {
   constructor(p) {
     this.p5 = p;
     this.computer = new Computer(p);
-    this.the_library = new TheLibrary(p);
+    this.bot = new Bot(p);
+    this.the_library = new TheLibrary(p, this.bot.screenHeight);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     this.audioContext = new AudioContext();
@@ -144,7 +145,6 @@ class Terminal {
       //this.computer.SetMode(Modes.NAE_KEYBOARD);
       //Environment.mode = Modes.NAE_KEYBOARD;
     }
-    this.bot = new Bot(p);
     this.shouldDisplayBot = true;
 
 
@@ -172,24 +172,26 @@ class Terminal {
 
   // main entry point
   RefreshDisplay() {
+    this.bot.Display();
+
     if (Environment.mode == Modes.THE_LIBRARY) {
-      if (!this.music_playing) {
-        this.music_playing = true;
-        this.PlayMusic(this.music_playing);
-      }
+      //  // if (!this.music_playing) {
+      //  //   this.music_playing = true;
+      //  //   this.PlayMusic(this.music_playing);
+      //  // }
       this.the_library.GameLoop();
     } else {
-      if (this.music_playing) {
-        this.music_playing = false;
-        this.PlayMusic(this.music_playing);
-      }
+      //  // if (this.music_playing) {
+      //  //   this.music_playing = false;
+      //  //   this.PlayMusic(this.music_playing);
+      //  // }
       this.CommandModeLoop();
     }
   }
 
   ResizeDisplay(width, height) {
     if (Environment.mode == Modes.THE_LIBRARY) {
-      this.the_library.ResizeDisplay(width, height)
+      this.the_library.ResizeDisplay(width, height, this.bot.screenHeight)
     }
   }
 
@@ -207,13 +209,13 @@ class Terminal {
     }
 
     if (computeEval) {
-      this.bot.isTalking = true;
+      // this.bot.isTalking = true;
       this.DisplayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
       if (!this.computer.isComputing) {
         screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
       }
     } else {
-      this.bot.isTalking = false;
+      // this.bot.isTalking = false;
       let displayDir = ("/home/" + Environment.user_name === Environment.pwd) ? "~" : Environment.pwd;
       this.PS2Display = PS2Line + " [" + displayDir + "]";
       this.DisplayLine(PS2_TYPE, this.PS2Display);
@@ -221,9 +223,8 @@ class Terminal {
       this.cursor.Display(leftMargin + (shellIcon.length + lineBuffer.length) * fontWidth, (this.lineNum - 1) * lineHeight + this.bot.screenHeight);
     }
 
-    if (this.shouldDisplayBot) {
-      this.bot.Display();
-    }
+    //if (this.shouldDisplayBot) {
+    //}
 
   }
 
