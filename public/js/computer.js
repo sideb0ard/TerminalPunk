@@ -10,7 +10,7 @@ import {
 } from "./environment.js"
 
 
-const intro = "Hi hi!";
+const intro = "WELCOME, AGENT!";
 // const intro = "LO";
 //const intro = "Your eyes open... your mind explodes with input - you find yourself inhabiting a humanoid cybernetic body, standing in a rowdy bar, the music a throbbing bass pulse, rattling your metallic core. The heavily pierced elephant-headed barman asks what you're having...";
 // const yourName = "Iron Dollar Adamson";
