@@ -71,6 +71,17 @@ function isPrintable(keyCode) {
   return false;
 }
 
+function chunkString(str, size) {
+  const numChunks = Math.ceil(str.length / size)
+  const chunks = new Array(numChunks)
+
+  for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+    chunks[i] = str.substr(o, size)
+  }
+
+  return chunks
+}
+
 function DisplayWord(p5, startX, posY, word) {
   for (let i = 0; i < word.length; ++i) {
     let posX = startX + i * fontWidth;
@@ -81,6 +92,7 @@ function DisplayWord(p5, startX, posY, word) {
 
 class HistoryEntry {
   constructor(type, content) {
+    console.log("YO TYPE:", type, " CONTENT:", content);
     this.type = type;
     this.content = content;
   }
@@ -139,11 +151,7 @@ class Terminal {
       console.log("TOUCH SCREEN!");
       this.computer.SetMode(Modes.NAE_KEYBOARD);
       Environment.mode = Modes.NAE_KEYBOARD;
-      // browser supports multi-touch
-    } else {
-      console.log("NOT TOUCH!");
-      //this.computer.SetMode(Modes.NAE_KEYBOARD);
-      //Environment.mode = Modes.NAE_KEYBOARD;
+      // browser supports multi-touch, likely tablet or phone - send em packing.
     }
     this.shouldDisplayBot = true;
 
@@ -197,7 +205,7 @@ class Terminal {
 
 
   CommandModeLoop() {
-    this.displayLenInLines = Math.floor(this.p5.height / lineHeight);
+    this.displayLenInLines = Math.floor((this.p5.height - this.bot.screenHeight) / lineHeight);
     this.lineWidthChars = this.p5.width / fontWidth;
     this.lineNum = 1;
 
@@ -209,23 +217,17 @@ class Terminal {
     }
 
     if (computeEval) {
-      // this.bot.isTalking = true;
       this.DisplayLine(SCREEN_ENTRY_COMPUTER_TYPE, computeEval);
       if (!this.computer.isComputing) {
         screenHistory.push(new HistoryEntry(SCREEN_ENTRY_COMPUTER_TYPE, computeEval));
       }
     } else {
-      // this.bot.isTalking = false;
       let displayDir = ("/home/" + Environment.user_name === Environment.pwd) ? "~" : Environment.pwd;
       this.PS2Display = PS2Line + " [" + displayDir + "]";
       this.DisplayLine(PS2_TYPE, this.PS2Display);
       this.DisplayLine(SCREEN_ENTRY_USER_TYPE, lineBuffer);
       this.cursor.Display(leftMargin + (shellIcon.length + lineBuffer.length) * fontWidth, (this.lineNum - 1) * lineHeight + this.bot.screenHeight);
     }
-
-    //if (this.shouldDisplayBot) {
-    //}
-
   }
 
   KeyPressed(keyCode, key) {
@@ -276,6 +278,7 @@ class Terminal {
         this.computer.Read(lineBuffer);
         screenHistory.push(new HistoryEntry(PS2_TYPE, this.PS2Display));
         screenHistory.push(new HistoryEntry(SCREEN_ENTRY_USER_TYPE, lineBuffer));
+        console.log(screenHistory);
         if (lineBuffer.length > 0) {
           history.push(lineBuffer);
           historyIdx = history.length;
@@ -292,22 +295,36 @@ class Terminal {
   }
 
   DisplayScreenHistory() {
-    let screenHistoryLength = 0;
+    //let screenHistoryLength = 0;
+    let maxCharsPerLine = Math.floor((this.p5.width - leftMargin - rightMargin) / fontWidth);
+
+    let resized_history_lines_type = [];
+    let resized_history_lines = [];
+
     screenHistory.forEach((line) => {
-      let lineLen = Math.ceil(line.content.length / this.lineWidthChars);
-      screenHistoryLength += lineLen;
+      let resized_lines = chunkString(line.content, maxCharsPerLine);
+      for (let i = 0; i < resized_lines.length; i++) {
+        resized_history_lines_type.push(line.type);
+        resized_history_lines.push(resized_lines[i]);
+      }
+      // this preserves blank lines
+      if (resized_lines.length === 0 && line.type === SCREEN_ENTRY_USER_TYPE) {
+        resized_history_lines_type.push(line.type);
+        resized_history_lines.push("");
+      }
     });
-    let historyLinesToDisplay = Math.min(screenHistoryLength,
-      this.displayLenInLines - 5);
+    let historyLinesToDisplay = Math.min(resized_history_lines.length,
+      this.displayLenInLines - 3);
     //console.log("DISPLAY HIST LINES NUM:", historyLinesToDisplay);
 
     let historyStartIdx = 0;
-    if (screenHistory.length > historyLinesToDisplay) {
-      historyStartIdx = screenHistory.length - historyLinesToDisplay;
+    if (resized_history_lines.length > historyLinesToDisplay) {
+      historyStartIdx = resized_history_lines.length - historyLinesToDisplay;
     }
 
-    for (let i = historyStartIdx; i < screenHistory.length; i++) {
-      this.DisplayLine(screenHistory[i].type, screenHistory[i].content);
+    for (let i = historyStartIdx; i < resized_history_lines.length; i++) {
+      //this.DisplayLine(screenHistory[i].type, screenHistory[i].content);
+      this.DisplayLine(resized_history_lines_type[i], resized_history_lines[i]);
     }
   }
 

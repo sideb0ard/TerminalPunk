@@ -29,7 +29,7 @@ class Computer {
     this.p5 = p;
     this.isComputing = true;
     this.inputLine = "";
-    this.responseLine = intro;
+    this.responseLine = "";
     this.responseIdx = 0;
     this.nextFrameIncr = 0;
     this.currentLine = 1;
