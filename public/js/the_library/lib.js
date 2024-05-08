@@ -48,7 +48,7 @@ function CheckLazerCollision(cat, agent) {
   if (cat.shooting_lasers && (CheckCircleRectCollision(cat.laser_eye_left, agent) || CheckCircleRectCollision(cat.laser_eye_right, agent))) {
     console.log("LAZER COLLISIOn - YYEYYEAHA");
     //cat.shooting_lasers = false;
-    agent.Regenerate();
+    agent.Zap();
     //cat.ShootAt(agent);
   }
 }
@@ -63,10 +63,12 @@ export class TheLibrary {
     this.dino = new Dino(p5, top_margin);
     this.art_book = new ArtBook(p5, top_margin);
     this.cat.ShootAt(this.agent.position);
-    this.ResizeDisplay(p5.windowWidth, p5.windowHeight - this.top_margin);
+    this.ResizeDisplay(p5.windowWidth, p5.windowHeight);
   }
 
-  ResizeDisplay(width, height) {
+  ResizeDisplay(p5_width, p5_height) {
+    let height = p5_height - this.top_margin;
+    let width = p5_width;
     this.shelves = [];
     let shelf_width = width;
     let shelf_height = height / 4;
@@ -91,6 +93,7 @@ export class TheLibrary {
     }
 
     CheckLazerCollision(this.cat, this.agent);
+    CheckLazerCollision(this.cat, this.dino);
   }
 
 }

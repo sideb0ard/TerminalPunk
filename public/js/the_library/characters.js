@@ -18,6 +18,7 @@ let agent_right_01;
 let agent_right_02;
 let agent_right_03;
 let agent_right_04;
+let agent_shock;
 
 const cat_width = 121;
 const cat_height = 121;
@@ -30,7 +31,7 @@ let cat_right_02;
 
 const dino_width = 100; // orig 494
 const dino_height = 110; // orig 551
-const dino_starting_shelf = 3;
+const dino_starting_shelf = 1;
 let dino_left_01;
 let dino_left_02;
 let dino_left_03;
@@ -39,6 +40,7 @@ let dino_right_01;
 let dino_right_02;
 let dino_right_03;
 let dino_right_04;
+let dino_shock;
 
 function IsOutsideScreen(object, p5) {
   if (object.position.x + object.width > p5.windowWidth || object.position.x < 0 || object.position.y + object.height > p5.windowHeight || object.position.y < 0) {
@@ -159,14 +161,12 @@ export class Cat {
   Gravity(p5) {
     let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
     let current_shelf_y_height = (num_bookshelves + 1 - this.current_shelf) * shelf_height;
-    console.log("CUR SHELF Y HEIGHT:", current_shelf_y_height);
     if (this.position.y + this.height >= (current_shelf_y_height - bookshelf_thickness)) {
       // hit the ground
       this.position.y = this.top_margin + (current_shelf_y_height - bookshelf_thickness - this.height);
     } else {
       this.position.y = this.position.y + this.velocity.y;
     }
-    console.log("POSY:", this.position.y);
   }
 }
 
@@ -174,7 +174,7 @@ export class Dino {
   constructor(p5, top_margin) {
     this.top_margin = top_margin;
     this.position = p5.createVector(p5.windowWidth - dino_width - bookshelf_thickness / 2, 0);
-    this.velocity = p5.createVector(4, 15);
+    this.velocity = p5.createVector(4, 5);
     dino_right_01 = p5.loadImage('/images/dino-left-1.png');
     dino_right_02 = p5.loadImage('/images/dino-left-2.png');
     dino_right_03 = p5.loadImage('/images/dino-left-3.png');
@@ -184,6 +184,9 @@ export class Dino {
     dino_left_02 = p5.loadImage('/images/dino-right-2.png');
     dino_left_03 = p5.loadImage('/images/dino-right-3.png');
     dino_left_04 = p5.loadImage('/images/dino-right-4.png');
+
+    dino_shock = p5.loadImage('/images/dino-shock.png');
+    this.shock_timer = 0;
 
     this.left = [dino_left_01, dino_left_02, dino_left_03, dino_left_04];
     this.right = [dino_right_01, dino_right_02, dino_right_03, dino_right_04];
@@ -195,8 +198,29 @@ export class Dino {
     this.current_shelf = dino_starting_shelf;
   }
 
+  Reset(p5) {
+    this.shock_timer = 0;
+    this.position.set(p5.windowWidth - dino_width - bookshelf_thickness / 2, 0);
+    this.current_shelf--;
+    if (this.current_shelf == 0) {
+      this.current_shelf = 4;
+    }
+  }
+
+  Zap() {
+    this.shock_timer = 10;
+  }
+
   Run(p5, target) {
     let img = this.current_dir[this.animation_idx];
+    if (this.shock_timer > 0) {
+      img = dino_shock;
+      this.shock_timer--;
+      if (this.shock_timer == 0) {
+        this.Reset(p5);
+      }
+    }
+
     if (p5.frameCount % 20 == 0) {
       this.animation_idx++;
       if (this.animation_idx == this.left.length) this.animation_idx = 0;
@@ -244,6 +268,7 @@ export class Agent {
     agent_right_02 = p5.loadImage('/images/willy_right_02.png');
     agent_right_03 = p5.loadImage('/images/willy_right_03.png');
     agent_right_04 = p5.loadImage('/images/willy_right_04.png');
+    agent_shock = p5.loadImage('/images/willy_shock.png');
 
     this.left = [agent_left_01, agent_left_02, agent_left_03, agent_left_04];
     this.right = [agent_right_01, agent_right_02, agent_right_03, agent_right_04];
@@ -264,6 +289,8 @@ export class Agent {
     this.jump_counter = agent_jump_power;
     this.falling_speed = 4;
     this.num_lives = num_agent_lives;
+
+    this.zap_timer = 0;
   }
 
   Move(direction) {
@@ -274,6 +301,10 @@ export class Agent {
     }
   }
 
+  Zap() {
+    this.zap_timer = 2;
+  }
+
   Regenerate() {
     this.position.set(0, 0);
     this.current_shelf = agent_starting_shelf;
@@ -281,10 +312,17 @@ export class Agent {
   }
 
   Run(p5) {
+    let img = this.current_dir[this.animation_idx];
+    if (this.zap_timer > 0) {
+      img = agent_shock;
+      this.zap_timer--;
+      if (this.zap_timer == 0) {
+        this.Regenerate();
+      }
+    }
     if (this.num_lives) {
       this.CheckKeys(p5);
       this.Gravity(p5);
-      let img = this.current_dir[this.animation_idx];
       p5.image(img, this.position.x, this.position.y, this.width, this.height);
 
       if (this.down_triggered) {
@@ -313,7 +351,7 @@ export class Agent {
       if (new_x < p5.windowWidth - this.width) this.position.x = new_x;
     }
 
-    if (p5.keyIsDown(32) && this.current_shelf != 4) {
+    if (p5.keyIsDown(32)) {
       this.is_jumping = true;
     } else {
       this.is_jumping = false;

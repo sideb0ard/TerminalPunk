@@ -82,7 +82,7 @@ function chunkString(str, size) {
   return chunks
 }
 
-function DisplayWord(p5, startX, posY, word) {
+export function DisplayWord(p5, startX, posY, word) {
   for (let i = 0; i < word.length; ++i) {
     let posX = startX + i * fontWidth;
     p5.text(word[i], posX, posY);
@@ -128,6 +128,7 @@ class Terminal {
     this.p5 = p;
     this.computer = new Computer(p);
     this.bot = new Bot(p);
+    this.bot.Say("Howdy, agent!");
     this.the_library = new TheLibrary(p, this.bot.screenHeight);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
