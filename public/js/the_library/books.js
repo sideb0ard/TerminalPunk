@@ -21,6 +21,7 @@ let art_vol_5;
 let art_vol_6;
 let art_vol_7;
 
+const TIME_TO_REGENERATE = 120; // frames so 2 seconds
 export class ArtBook {
   constructor(p5, top_margin) {
     this.position = p5.createVector(0, 0);
@@ -44,15 +45,27 @@ export class ArtBook {
     this.should_display = true;
     this.width = art_vol_width;
     this.height = art_vol_height;
+
+    this.regeneration_timer = 0;
   }
 
   Draw(p5) {
-    if (this.should_display) {
-      let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
-      let current_shelf_y_height = this.top_margin + (num_bookshelves + 1 - this.current_shelf) * shelf_height;
-      this.position.y = current_shelf_y_height - bookshelf_thickness - art_vol_height;
-      p5.image(this.vols[this.vol_idx], this.position.x, this.position.y, art_vol_width, art_vol_height);
+    if (this.regeneration_timer > 0) {
+      this.regeneration_timer--;
+    } else {
+      console.log("GEN TIMER:", this.regeneration_timer);
+
+      if (this.should_display) {
+        let shelf_height = (p5.windowHeight - this.top_margin) / num_bookshelves;
+        let current_shelf_y_height = this.top_margin + (num_bookshelves + 1 - this.current_shelf) * shelf_height;
+        this.position.y = current_shelf_y_height - bookshelf_thickness - art_vol_height;
+        p5.image(this.vols[this.vol_idx], this.position.x, this.position.y, art_vol_width, art_vol_height);
+      }
     }
+  }
+
+  IsRegenerating() {
+    return this.regeneration_timer > 0;
   }
 
   Regenerate() {
@@ -63,6 +76,7 @@ export class ArtBook {
     this.current_shelf = Math.floor(Math.random() * num_bookshelves) + 1;
     this.position.x = Math.random() * (this.p5.windowWidth - art_vol_width - bookshelf_thickness * 2) + bookshelf_thickness
     console.log("RGEN: POS X:", this.position.x);
+    this.regeneration_timer = TIME_TO_REGENERATE;
   }
 }
 

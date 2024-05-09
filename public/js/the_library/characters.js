@@ -173,7 +173,7 @@ export class Cat {
 export class Dino {
   constructor(p5, top_margin) {
     this.top_margin = top_margin;
-    this.position = p5.createVector(p5.windowWidth - dino_width - bookshelf_thickness / 2, 0);
+    this.position = p5.createVector(p5.random(bookshelf_thickness, p5.windowWidth - dino_width - bookshelf_thickness), 0);
     this.velocity = p5.createVector(4, 5);
     dino_right_01 = p5.loadImage('/images/dino-left-1.png');
     dino_right_02 = p5.loadImage('/images/dino-left-2.png');
@@ -200,7 +200,7 @@ export class Dino {
 
   Reset(p5) {
     this.shock_timer = 0;
-    this.position.set(p5.windowWidth - dino_width - bookshelf_thickness / 2, 0);
+    this.position.set(p5.random(bookshelf_thickness, p5.windowWidth - dino_width - bookshelf_thickness), 0);
     this.current_shelf--;
     if (this.current_shelf == 0) {
       this.current_shelf = 4;
@@ -303,6 +303,11 @@ export class Agent {
 
   Zap() {
     this.zap_timer = 2;
+  }
+
+  Alive() {
+    console.log("THIS MANY LIVES:", this.num_lives);
+    return this.num_lives > 0;
   }
 
   Regenerate() {
