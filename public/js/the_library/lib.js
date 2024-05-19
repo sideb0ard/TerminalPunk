@@ -12,12 +12,22 @@ import {
 } from "./characters.js"
 
 const NUM_ALGO_BOOKS = 10;
+const FONTSIZE = 38;
+const LINEHEIGHT = 60;
+const FONTWIDTH = 30;
 
 const GameState = Object.freeze({
   UNDECIDED: 0,
   WON: 1,
   LOST: 2,
 });
+
+function DisplayWord(p5, startX, posY, word, font_width) {
+  for (let i = 0; i < word.length; ++i) {
+    let posX = startX + i * font_width;
+    p5.text(word[i], posX, posY);
+  }
+}
 
 function CheckRectCollision(object1, object2) {
   if (object1.position.x + object1.width >= object2.position.x &&
@@ -72,17 +82,25 @@ function CheckDinoCollision(dino, agent) {
 
 export class TheLibrary {
 
-  constructor(p5, top_margin) {
+  constructor(p5, bot) {
     this.p5 = p5;
-    this.top_margin = top_margin;
+    this.bot = bot;
+    this.top_margin = bot.screenHeight;
+    this.Reset();
+    //this.font = p5.loadFont('fonts/tiny-islanders.ttf');
+    this.font = p5.loadFont('fonts/zxspectrum7-nroz0.ttf');
+  }
+
+  Reset() {
     this.state = GameState.UNDECIDED;
-    this.agent = new Agent(p5, top_margin);
+    this.agent = new Agent(this.p5, this.top_margin);
     this.num_books_gathered = 0;
-    this.cat = new Cat(p5, top_margin);
-    this.dino = new Dino(p5, top_margin);
-    this.art_book = new ArtBook(p5, top_margin);
+    this.cat = new Cat(this.p5, this.top_margin);
+    this.dino = new Dino(this.p5, this.top_margin);
+    this.art_book = new ArtBook(this.p5, this.top_margin);
     this.cat.ShootAt(this.agent.position);
-    this.ResizeDisplay(p5.windowWidth, p5.windowHeight);
+    this.ResizeDisplay(this.p5.windowWidth, this.p5.windowHeight);
+    this.has_started = false;
   }
 
   ResizeDisplay(p5_width, p5_height) {
@@ -97,7 +115,25 @@ export class TheLibrary {
     this.agent.SetJumpPower(height / 32);
   }
 
+  DisplayScores() {
+    this.p5.textFont(this.font, FONTSIZE);
+    let posX = this.p5.windowWidth - 400;
+    let posY = 45;
+
+    let wurd = "Lives: " + this.agent.num_lives;
+    DisplayWord(this.p5, posX, posY, wurd, FONTWIDTH);
+
+    posY += LINEHEIGHT;
+    wurd = "Books: " + this.num_books_gathered;
+    DisplayWord(this.p5, posX, posY, wurd, FONTWIDTH);
+  }
+
   GameLoop() {
+    this.DisplayScores();
+    if (!this.has_started) {
+      this.has_started = true;
+      this.bot.Say("Collect all 7 volumes!");
+    }
     if (this.state === GameState.UNDECIDED) {
       this.shelves.forEach((s) => {
         s.Draw(this.p5);
@@ -114,7 +150,7 @@ export class TheLibrary {
           this.cat.velocity.mult(1.03);
           this.dino.velocity.mult(1.03);
           if (this.num_books_gathered === NUM_ALGO_BOOKS) {
-            console.log("WWOOOON!");
+            this.bot.Say("THA WINNNNNAH!");
             this.state = GameState.WON;
           }
           this.art_book.Regenerate();
@@ -127,11 +163,8 @@ export class TheLibrary {
 
       if (!this.agent.Alive()) {
         this.state = GameState.LOST;
+        this.bot.Say("THA LOOOOOOOOSAH!");
       }
-    } else if (this.state === GameState.WON) {
-      console.log("WOOOOOOOn!!");
-    } else if (this.state === GameState.LOST) {
-      console.log("LOOOOOST!!");
-    }
+    } else if (this.state === GameState.WON) {} else if (this.state === GameState.LOST) {}
   }
 }

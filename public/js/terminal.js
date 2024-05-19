@@ -15,9 +15,6 @@ import {
   Modes
 } from "./environment.js"
 
-const terminalWidthInChars = 60;
-// const MARGIN = 30;
-
 let currentLine = 1;
 let lineHeight = 40;
 let fontSize = 28;
@@ -48,6 +45,11 @@ let lineBuffer = "";
 let lineBufferTmp = "";
 
 const statusHeight = 50;
+
+const keyPressSounds = ["audio/keyclack1.wav", "audio/keyclack2.wav", "audio/keyclack3.wav", "audio/keyclack4.wav", "audio/keyclack5.wav"];
+let key_sound_idx = 0;
+
+function TriggerKeyPressSound() {}
 
 function isPrintable(keyCode) {
   // from http://gcctech.org/csc/javascript/javascript_keycodes.htm
@@ -82,9 +84,9 @@ function chunkString(str, size) {
   return chunks
 }
 
-export function DisplayWord(p5, startX, posY, word) {
+function DisplayWord(p5, startX, posY, word, font_width) {
   for (let i = 0; i < word.length; ++i) {
-    let posX = startX + i * fontWidth;
+    let posX = startX + i * font_width;
     p5.text(word[i], posX, posY);
   }
 }
@@ -129,7 +131,7 @@ class Terminal {
     this.computer = new Computer(p);
     this.bot = new Bot(p);
     this.bot.Say("Howdy, agent!");
-    this.the_library = new TheLibrary(p, this.bot.screenHeight);
+    this.the_library = new TheLibrary(p, this.bot);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     this.audioContext = new AudioContext();
@@ -172,7 +174,7 @@ class Terminal {
       this.audioContext.resume();
     }
     if (should_play) {
-      //this.audioElement.play();
+      this.audioElement.play();
     } else {
       this.audioElement.pause();
     }
@@ -184,24 +186,22 @@ class Terminal {
     this.bot.Display();
 
     if (Environment.mode == Modes.THE_LIBRARY) {
-      //  // if (!this.music_playing) {
-      //  //   this.music_playing = true;
-      //  //   this.PlayMusic(this.music_playing);
-      //  // }
+      if (!this.music_playing) {
+        this.music_playing = true;
+        //this.PlayMusic(this.music_playing);
+      }
       this.the_library.GameLoop();
     } else {
-      //  // if (this.music_playing) {
-      //  //   this.music_playing = false;
-      //  //   this.PlayMusic(this.music_playing);
-      //  // }
+      if (this.music_playing) {
+        this.music_playing = false;
+        //this.PlayMusic(this.music_playing);
+      }
       this.CommandModeLoop();
     }
   }
 
   ResizeDisplay(width, height) {
-    if (Environment.mode == Modes.THE_LIBRARY) {
-      this.the_library.ResizeDisplay(width, height, this.bot.screenHeight)
-    }
+    this.the_library.ResizeDisplay(width, height, this.bot.screenHeight)
   }
 
 
@@ -233,6 +233,7 @@ class Terminal {
 
   KeyPressed(keyCode, key) {
     if (Environment.mode == Modes.COMMAND) {
+      TriggerKeyPressSound();
       if (key == 'Backspace') {
         if (lineBuffer.length > 0) {
           lineBuffer = lineBuffer.substring(0, lineBuffer.length - 1);
@@ -358,7 +359,7 @@ class Terminal {
         charCount = 0;
       }
       let posY = this.lineNum * lineHeight + this.bot.screenHeight;
-      DisplayWord(this.p5, posX, posY, wurd);
+      DisplayWord(this.p5, posX, posY, wurd, fontWidth);
       posX += wurd.length * fontWidth;
       charCount += wurd.length;
       if (wurds.length) {

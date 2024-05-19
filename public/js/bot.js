@@ -2,14 +2,18 @@
 // const this.pixWidth = 7;
 
 const BOT_DISPLAY_HEIGHT = 120;
-const SPEAKING_TIME = 120; // frames;
-const FONTSIZE = 48;
-const LINEHEIGHT = 40;
-const FONTWIDTH = 20;
+const WURDS_DISPLAY_TIME = 240; // frames;
+const SPEAKING_TIME = 60; // frames;
+const FONTSIZE = 38;
+const LINEHEIGHT = 60;
+const FONTWIDTH = 30;
 
-import {
-  DisplayWord,
-} from './terminal.js';
+function DisplayWord(p5, startX, posY, word, font_width) {
+  for (let i = 0; i < word.length; ++i) {
+    let posX = startX + i * font_width;
+    p5.text(word[i], posX, posY);
+  }
+}
 
 class Bot {
   constructor(p) {
@@ -19,10 +23,12 @@ class Bot {
 
     this.wurds = "";
     this.wurds_idx = 0;
+    this.wurds_display_timer = 0;
     this.speaking_timer = 0;
     this.isTalking = false;
 
-    this.bot_font = p.loadFont('fonts/tiny-islanders.ttf');
+    //this.bot_font = p.loadFont('fonts/tiny-islanders.ttf');
+    this.bot_font = p.loadFont('fonts/zxspectrum7-nroz0.ttf');
 
     this.head = [{
         y: 0,
@@ -376,31 +382,32 @@ class Bot {
 
   Say(text) {
     this.isTalking = true;
+    //this.wurds = text.toUpperCase();
     this.wurds = text;
     this.wurds_idx = 0;
-    this.speaking_timer = 0;
+    this.speaking_timer = SPEAKING_TIME;
+    this.wurds_display_timer = WURDS_DISPLAY_TIME;
   }
 
   Talk() {
-    this.speaking_timer++;
-    if (this.speaking_timer > SPEAKING_TIME) {
-      this.isTalking = false;
-    }
     let maxCharsPerLine = Math.floor((this.p5.width - BOT_DISPLAY_HEIGHT) / FONTWIDTH);
     let charCount = 0;
-    let posX = BOT_DISPLAY_HEIGHT;
+    let posX = BOT_DISPLAY_HEIGHT + 20;
 
     let wurds = this.wurds.split(" ");
     let line_num = 1;
     while (wurds.length) {
       let wurd = wurds.shift();
+      console.log("TAL:K TALK", wurd);
       if (wurd.length > (maxCharsPerLine - charCount)) {
         line_num++;
         posX = BOT_DISPLAY_HEIGHT;
         charCount = 0;
       }
-      let posY = line_num * LINEHEIGHT;
-      DisplayWord(this.p5, posX, posY, wurd);
+      let posY = 45;
+      //let posY = line_num * LINEHEIGHT;
+      //let posY = BOT_DISPLAY_HEIGHT / 2 + 10;
+      DisplayWord(this.p5, posX, posY, wurd, FONTWIDTH);
       posX += wurd.length * FONTWIDTH;
       charCount += wurd.length;
       if (wurds.length) {
@@ -429,6 +436,7 @@ class Bot {
       let y = topy + pix.y * this.pixWidth;
       this.p5.square(x, y, this.pixWidth);
     });
+
     if (this.isTalking && (this.p5.frameCount % 30 < 15)) {
       this.openSmile.forEach((pix) => {
         let x = topx + pix.x * this.pixWidth;
@@ -442,10 +450,18 @@ class Bot {
         this.p5.square(x, y, this.pixWidth);
       });
     }
-    if (this.isTalking) {
+    if (this.speaking_timer > 0) {
+      this.speaking_timer--;
+      if (this.speaking_timer) this.isTalking = true;
+      else this.isTalking = false;
+    }
+
+    if (this.wurds_display_timer > 0) {
+      this.wurds_display_timer--;
       this.p5.textFont(this.bot_font, FONTSIZE);
       this.Talk();
     }
+
     //this.p5.fill(255);
     //this.glassesShine.forEach((pix) => {
     //  let x = topx + pix.x * this.pixWidth;
