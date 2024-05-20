@@ -8,6 +8,7 @@ import {
 
 import {
   TheLibrary,
+  GameState,
 } from "./the_library/lib.js"
 
 import {
@@ -130,7 +131,6 @@ class Terminal {
     this.p5 = p;
     this.computer = new Computer(p);
     this.bot = new Bot(p);
-    this.bot.Say("Howdy, agent!");
     this.the_library = new TheLibrary(p, this.bot);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
@@ -155,6 +155,8 @@ class Terminal {
       this.computer.SetMode(Modes.NAE_KEYBOARD);
       Environment.mode = Modes.NAE_KEYBOARD;
       // browser supports multi-touch, likely tablet or phone - send em packing.
+    } else {
+      this.bot.Say("Howdy, agent!");
     }
     this.shouldDisplayBot = true;
 
@@ -292,7 +294,9 @@ class Terminal {
         Environment.mode = Modes.COMMAND;
         Environment.pwd = "/";
       }
-
+      if (key === 'r' && (this.the_library.state == GameState.WON || this.the_library.state === GameState.LOST)) {
+        this.the_library.Reset();
+      }
     }
   }
 

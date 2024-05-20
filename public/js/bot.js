@@ -404,7 +404,7 @@ class Bot {
         posX = BOT_DISPLAY_HEIGHT;
         charCount = 0;
       }
-      let posY = 45;
+      let posY = 45 * line_num;
       //let posY = line_num * LINEHEIGHT;
       //let posY = BOT_DISPLAY_HEIGHT / 2 + 10;
       DisplayWord(this.p5, posX, posY, wurd, FONTWIDTH);

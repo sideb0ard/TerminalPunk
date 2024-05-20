@@ -13,10 +13,13 @@ import {
 
 const NUM_ALGO_BOOKS = 10;
 const FONTSIZE = 38;
-const LINEHEIGHT = 60;
+const LINEHEIGHT = 40;
 const FONTWIDTH = 30;
+const RIGHTMARGIN = 280;
+const WINNAH_IMAGE = "/images/willy_right_04.png";
+const LOSSAH_IMAGE = "/images/CAT-left-1.png";
 
-const GameState = Object.freeze({
+export const GameState = Object.freeze({
   UNDECIDED: 0,
   WON: 1,
   LOST: 2,
@@ -62,17 +65,19 @@ function CheckCircleRectCollision(circle_object, rect_object) {
   return false;
 }
 
-function CheckLazerCollision(cat, agent) {
+function CheckLazerCollision(cat, agent, bot) {
   if (CheckCircleRectCollision(cat.laser_eye_left, agent) || CheckCircleRectCollision(cat.laser_eye_right, agent)) {
+    bot.Say("BURN!")
     console.log("LAZER COLLISIOn - YYEYYEAHA");
     agent.Zap();
     cat.ShootAt(agent.position);
   }
 }
 
-function CheckDinoCollision(dino, agent) {
+function CheckDinoCollision(dino, agent, bot) {
   if (CheckRectCollision(dino, agent)) {
     console.log("DINO COLLISIOn - YYEYYEAHA");
+    bot.Say("BZZZZT!")
     if (agent.zap_timer === 0 && dino.shock_timer === 0) {
       agent.Zap();
       dino.Zap();
@@ -86,13 +91,16 @@ export class TheLibrary {
     this.p5 = p5;
     this.bot = bot;
     this.top_margin = bot.screenHeight;
-    this.Reset();
-    //this.font = p5.loadFont('fonts/tiny-islanders.ttf');
     this.font = p5.loadFont('fonts/zxspectrum7-nroz0.ttf');
+    this.winnah_image = p5.loadImage(WINNAH_IMAGE);
+    this.lossah_image = p5.loadImage(LOSSAH_IMAGE);
+    this.Reset();
   }
 
   Reset() {
     this.state = GameState.UNDECIDED;
+    //this.state = GameState.LOST;
+    //this.state = GameState.WON;
     this.agent = new Agent(this.p5, this.top_margin);
     this.num_books_gathered = 0;
     this.cat = new Cat(this.p5, this.top_margin);
@@ -117,7 +125,7 @@ export class TheLibrary {
 
   DisplayScores() {
     this.p5.textFont(this.font, FONTSIZE);
-    let posX = this.p5.windowWidth - 400;
+    let posX = this.p5.windowWidth - RIGHTMARGIN;
     let posY = 45;
 
     let wurd = "Lives: " + this.agent.num_lives;
@@ -150,21 +158,52 @@ export class TheLibrary {
           this.cat.velocity.mult(1.03);
           this.dino.velocity.mult(1.03);
           if (this.num_books_gathered === NUM_ALGO_BOOKS) {
-            this.bot.Say("THA WINNNNNAH!");
+            this.bot.Say("WINNEER! Check your home dir!");
             this.state = GameState.WON;
           }
           this.art_book.Regenerate();
         }
       }
 
-      CheckLazerCollision(this.cat, this.agent);
-      CheckLazerCollision(this.cat, this.dino);
-      CheckDinoCollision(this.dino, this.agent);
+      CheckLazerCollision(this.cat, this.agent, this.bot);
+      CheckLazerCollision(this.cat, this.dino, this.bot);
+      CheckDinoCollision(this.dino, this.agent, this.bot);
 
       if (!this.agent.Alive()) {
         this.state = GameState.LOST;
         this.bot.Say("THA LOOOOOOOOSAH!");
       }
-    } else if (this.state === GameState.WON) {} else if (this.state === GameState.LOST) {}
+    } else if (this.state === GameState.WON || this.state === GameState.LOST) {
+      let img = this.winnah_image;
+      let img_width = 190
+      let img_height = 304
+      let posX = (this.p5.windowWidth / 2) - 100;
+      //let posY = (this.p5.windowHeight / 2) - 145;
+      let posY = this.top_margin + 50;
+      let img_x = posX + 10;
+      if (this.state === GameState.LOST) {
+        img = this.lossah_image;
+        img_width = 304
+        img_x -= 50;
+      }
+
+
+      this.p5.image(img, img_x, posY, img_width, img_height);
+
+      posX -= 100;
+      posY += img_height + LINEHEIGHT;
+
+      this.p5.textFont(this.font, FONTSIZE);
+      //posX = (this.p5.windowWidth / 2) - 200;
+      //posY = (this.p5.windowHeight / 2) + 145;
+
+      let wurd = "'r' to restart.";
+      DisplayWord(this.p5, posX, posY, wurd, FONTWIDTH);
+
+      posY += LINEHEIGHT;
+      wurd = "'Esc' to exit";
+      //wurd = "Books: " + this.num_books_gathered;
+      DisplayWord(this.p5, posX, posY, wurd, FONTWIDTH);
+    }
   }
 }
