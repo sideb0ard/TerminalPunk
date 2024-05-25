@@ -12,6 +12,11 @@ import {
 } from "./the_library/lib.js"
 
 import {
+  PunkSynth,
+  DspController,
+} from "./synth/punksynth.js"
+
+import {
   Environment,
   Modes
 } from "./environment.js"
@@ -134,21 +139,8 @@ class Terminal {
     this.the_library = new TheLibrary(p, this.bot);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
-    this.audioContext = new AudioContext();
-
-    this.audioElement = document.querySelector("audio");
-    // pass it into the audio context
-    this.track = this.audioContext.createMediaElementSource(this.audioElement);
-    this.track.connect(this.audioContext.destination);
-
-    this.audioElement.addEventListener(
-      "ended",
-      () => {
-        //this.PlayMusic(true);
-      },
-      false,
-    );
-    this.music_playing = false;
+    this.punk_synth = new PunkSynth(this.p5);
+    this.dsp_controller = new DspController(this.p5, this.punk_synth);
 
     if (navigator.maxTouchPoints > 1) {
       console.log("TOUCH SCREEN!");
@@ -171,33 +163,18 @@ class Terminal {
 
   }
 
-  PlayMusic(should_play) {
-    if (this.audioContext.state === "suspended") {
-      this.audioContext.resume();
-    }
-    if (should_play) {
-      this.audioElement.play();
-    } else {
-      this.audioElement.pause();
-    }
-
-  }
-
   // main entry point
   RefreshDisplay() {
+
+    // Upper Bot section.
     this.bot.Display();
 
+    // main window contents.
     if (Environment.mode == Modes.THE_LIBRARY) {
-      if (!this.music_playing) {
-        this.music_playing = true;
-        //this.PlayMusic(this.music_playing);
-      }
       this.the_library.GameLoop();
+    } else if (Environment.mode == Modes.DSP) {
+      this.dsp_controller.Display();
     } else {
-      if (this.music_playing) {
-        this.music_playing = false;
-        //this.PlayMusic(this.music_playing);
-      }
       this.CommandModeLoop();
     }
   }
@@ -234,6 +211,9 @@ class Terminal {
   }
 
   KeyPressed(keyCode, key) {
+    if (this.p5.getAudioContext().state === "suspended") {
+      this.p5.getAudioContext().resume();
+    }
     if (Environment.mode == Modes.COMMAND) {
       TriggerKeyPressSound();
       if (key == 'Backspace') {

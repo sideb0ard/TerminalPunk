@@ -18,7 +18,9 @@ export class FileSystem {
     this.root.AddSubDirectory(foo);
     this.root.AddSubDirectory(new Directory(this.root, "bin"));
     this.root.AddSubDirectory(new Directory(this.root, "etc"));
-    this.root.AddSubDirectory(new Directory(this.root, "dev"));
+    let dev = new Directory(this.root, "dev");
+    dev.AddSubDirectory(new Directory(dev, "dsp"));
+    this.root.AddSubDirectory(dev);
     let home = new Directory(this.root, "home");
     console.log("HOME:", home);
     let agent_home = new Directory(home, "agent");

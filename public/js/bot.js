@@ -398,7 +398,6 @@ class Bot {
     let line_num = 1;
     while (wurds.length) {
       let wurd = wurds.shift();
-      console.log("TAL:K TALK", wurd);
       if (wurd.length > (maxCharsPerLine - charCount)) {
         line_num++;
         posX = BOT_DISPLAY_HEIGHT;
