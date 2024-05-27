@@ -13,7 +13,7 @@ import {
 
 import {
   PunkSynth,
-  DspController,
+  StepSequencer,
 } from "./synth/punksynth.js"
 
 import {
@@ -140,7 +140,7 @@ class Terminal {
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     this.punk_synth = new PunkSynth(this.p5);
-    this.dsp_controller = new DspController(this.p5, this.punk_synth);
+    this.step_sequencer = new StepSequencer(this.p5, this.punk_synth);
 
     if (navigator.maxTouchPoints > 1) {
       console.log("TOUCH SCREEN!");
@@ -173,7 +173,7 @@ class Terminal {
     if (Environment.mode == Modes.THE_LIBRARY) {
       this.the_library.GameLoop();
     } else if (Environment.mode == Modes.DSP) {
-      this.dsp_controller.Display();
+      this.step_sequencer.Display();
     } else {
       this.CommandModeLoop();
     }
