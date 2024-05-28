@@ -27,21 +27,48 @@ export class PunkSynth {
     att_rel.gain.linearRampToValueAtTime(0.5, time + 0.2);
     att_rel.gain.linearRampToValueAtTime(0, time + this.pulse_time - 0.2);
 
-    const amp = new GainNode(context, {
-      value: 1,
-    });
+    //const amp = new GainNode(context, {
+    //  value: 1,
+    //});
 
-    const lfo = new OscillatorNode(context, {
-      type: "sine",
-      frequency: 10,
-    });
+    // const lfo = new OscillatorNode(context, {
+    //   type: "sine",
+    //   frequency: 10,
+    // });
 
-    lfo.connect(amp.gain);
+    //lfo.connect(amp.gain);
     osc.connect(att_rel); // .connect(context.destination);
     att_rel.connect(context.destination);
-    lfo.start();
+    //osc.frequency.setTargetAtTime(freq + 200, time, time + 0.2);
+    //lfo.start();
     osc.start(time);
     osc.stop(time + this.pulse_time);
+  }
+
+  Lazer() {
+    const context = this.p5.getAudioContext();
+    if (context.state === "suspended") {
+      context.resume();
+    }
+    let time = context.currentTime;
+
+    const osc = new OscillatorNode(context, {
+      type: "square",
+      frequency: 500,
+    });
+
+    const att_rel = new GainNode(context);
+    att_rel.gain.cancelScheduledValues(time);
+    att_rel.gain.setValueAtTime(0, time);
+    att_rel.gain.linearRampToValueAtTime(0.5, time + 0.4);
+    att_rel.gain.linearRampToValueAtTime(0, time + this.pulse_time - 0.4);
+
+    osc.connect(att_rel);
+    att_rel.connect(context.destination);
+    osc.frequency.setTargetAtTime(200, time, time + 0.3);
+    osc.start(time);
+    osc.stop(time + this.pulse_time);
+
   }
 }
 
@@ -54,10 +81,10 @@ export class StepSequencer {
     this.p5 = p5;
     this.synth = synth;
     this.play_button = this.p5.createButton('Play');
-    this.play_button.position(10, 150);
+    //this.play_button.position(10, 150);
     this.play_button.mousePressed(() => this.StartLoop());
     this.stop_button = this.p5.createButton('Stop');
-    this.stop_button.position(100, 150);
+    //this.stop_button.position(100, 150);
     this.stop_button.mousePressed(() => this.StopLoop());
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];

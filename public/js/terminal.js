@@ -136,11 +136,12 @@ class Terminal {
     this.p5 = p;
     this.computer = new Computer(p);
     this.bot = new Bot(p);
-    this.the_library = new TheLibrary(p, this.bot);
-    this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     this.punk_synth = new PunkSynth(this.p5);
     this.step_sequencer = new StepSequencer(this.p5, this.punk_synth);
+
+    this.the_library = new TheLibrary(p, this.bot, this.punk_synth);
+    this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     if (navigator.maxTouchPoints > 1) {
       console.log("TOUCH SCREEN!");
@@ -160,6 +161,7 @@ class Terminal {
     this.computerColor = p.color(0, 195, 0);
 
     this.PS2Color = p.color(255, 0, 255);
+    this.music_playing = false;
 
   }
 
@@ -171,6 +173,10 @@ class Terminal {
 
     // main window contents.
     if (Environment.mode == Modes.THE_LIBRARY) {
+      if (this.music_playing === false) {
+        this.music_playing = true;
+        this.step_sequencer.StartLoop();
+      }
       this.the_library.GameLoop();
     } else if (Environment.mode == Modes.DSP) {
       this.step_sequencer.Display();
@@ -273,6 +279,8 @@ class Terminal {
       if (key == 'Escape') {
         Environment.mode = Modes.COMMAND;
         Environment.pwd = "/";
+        this.step_sequencer.StopLoop();
+        this.music_playing = false;
       }
       if (key === 'r' && (this.the_library.state == GameState.WON || this.the_library.state === GameState.LOST)) {
         this.the_library.Reset();

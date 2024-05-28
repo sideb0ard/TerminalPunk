@@ -91,7 +91,8 @@ class Laser {
 }
 
 export class Cat {
-  constructor(p5, top_margin) {
+  constructor(p5, top_margin, synth) {
+    this.synth = synth;
     this.top_margin = top_margin;
     this.position = p5.createVector(p5.windowWidth - cat_width - bookshelf_thickness / 2, top_margin);
     this.velocity = p5.createVector(4, 15);
@@ -116,7 +117,7 @@ export class Cat {
   }
 
   ShootAt(player_pos_source) {
-    console.log("SHOULD AT:", player_pos_source);
+    this.synth.Lazer();
     let player_pos = player_pos_source.copy();
     player_pos.add(agent_width / 2, agent_height / 2);
     this.shooting_lasers = true;
@@ -254,10 +255,11 @@ export class Dino {
 
 
 export class Agent {
-  constructor(p5, top_margin) {
+  constructor(p5, top_margin, synth) {
     this.top_margin = top_margin;
     this.position = p5.createVector(0, top_margin);
     this.velocity = p5.createVector(4, 15);
+    this.synth = synth;
 
     agent_left_01 = p5.loadImage('/images/willy_left_01.png');
     agent_left_02 = p5.loadImage('/images/willy_left_02.png');

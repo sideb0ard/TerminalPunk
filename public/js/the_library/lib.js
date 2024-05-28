@@ -87,23 +87,28 @@ function CheckDinoCollision(dino, agent, bot) {
 
 export class TheLibrary {
 
-  constructor(p5, bot) {
+  constructor(p5, bot, synth) {
     this.p5 = p5;
     this.bot = bot;
+    this.synth = synth;
     this.top_margin = bot.screenHeight;
     this.font = p5.loadFont('fonts/zxspectrum7-nroz0.ttf');
     this.winnah_image = p5.loadImage(WINNAH_IMAGE);
     this.lossah_image = p5.loadImage(LOSSAH_IMAGE);
+  }
+
+  Start() {
     this.Reset();
+    this.has_started = true;
   }
 
   Reset() {
     this.state = GameState.UNDECIDED;
     //this.state = GameState.LOST;
     //this.state = GameState.WON;
-    this.agent = new Agent(this.p5, this.top_margin);
+    this.agent = new Agent(this.p5, this.top_margin, this.synth);
     this.num_books_gathered = 0;
-    this.cat = new Cat(this.p5, this.top_margin);
+    this.cat = new Cat(this.p5, this.top_margin, this.synth);
     this.dino = new Dino(this.p5, this.top_margin);
     this.art_book = new ArtBook(this.p5, this.top_margin);
     this.cat.ShootAt(this.agent.position);
@@ -137,11 +142,12 @@ export class TheLibrary {
   }
 
   GameLoop() {
-    this.DisplayScores();
     if (!this.has_started) {
-      this.has_started = true;
+      console.log("NOT STARTED!");
+      this.Start();
       this.bot.Say("Collect all 7 volumes!");
     }
+    this.DisplayScores();
     if (this.state === GameState.UNDECIDED) {
       this.shelves.forEach((s) => {
         s.Draw(this.p5);

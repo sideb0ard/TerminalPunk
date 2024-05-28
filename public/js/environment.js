@@ -12,6 +12,6 @@ export let Environment = {
   "fs": null,
   "pwd": null,
   "user_name": "agent",
-  //mode: Modes.COMMAND,
-  mode: Modes.DSP,
+  mode: Modes.COMMAND,
+  //mode: Modes.DSP,
 };
