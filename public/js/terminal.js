@@ -140,6 +140,8 @@ class Terminal {
     this.punk_synth = new PunkSynth(this.p5);
     this.step_sequencer = new StepSequencer(this.p5, this.punk_synth);
 
+    this.text_font = p.loadFont('fonts/zxspectrum7-nroz0.ttf');
+
     this.the_library = new TheLibrary(p, this.bot, this.punk_synth);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
@@ -285,6 +287,14 @@ class Terminal {
       if (key === 'r' && (this.the_library.state == GameState.WON || this.the_library.state === GameState.LOST)) {
         this.the_library.Reset();
       }
+    } else if (Environment.mode == Modes.DSP) {
+      if (key == 'Escape') {
+        Environment.mode = Modes.COMMAND;
+        Environment.pwd = "/";
+        this.step_sequencer.StopLoop();
+        this.step_sequencer.Hide();
+        this.music_playing = false;
+      }
     }
   }
 
@@ -324,7 +334,8 @@ class Terminal {
 
   DisplayLine(type, line) {
 
-    this.p5.textFont("monospace", fontSize);
+    //this.p5.textFont("monospace", fontSize);
+    this.p5.textFont(this.text_font, fontSize);
     if (type === SCREEN_ENTRY_USER_TYPE) {
       this.p5.fill(this.cursor.color);;
       line = shellIcon + line;
