@@ -111,6 +111,7 @@ export class PunkSynth {
     let osc = this.CreateNote(freq);
     osc.start(time);
     osc.stop(time + 0.5);
+    //osc.disconnect(time + 0.7);
 
   }
 
@@ -141,6 +142,39 @@ export class PunkSynth {
   }
 }
 
+class Knob {
+  constructor(x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.radius = r;
+    this.angle = 0;
+    this.offset_angle = 0;
+    this.dragging = false;
+  }
+
+  Draw(p5) {
+    if (this.dragging) {
+      let dx = p5.mouseX - this.x;
+      let dy = p5.mouseY - this.y;
+      let mouse_angle = p5.atan2(dy, dx);
+      this.angle = mouse_angle - this.offset_angle;
+    }
+
+    p5.push();
+    p5.strokeWeight(2);
+    p5.translate(this.x, this.y);
+    p5.rotate(this.angle);
+    p5.circle(0, 0, this.radius * 2);
+    p5.line(0, 0, this.radius, 0);
+    p5.pop();
+    p5.fill(0);
+  }
+}
+
+class Panel {
+  constructor() {}
+}
+
 
 const lookahead = 25.0; // How frequently to call scheduling function (in milliseconds)
 const schedule_ahead_time = 0.1; // How far ahead to schedule audio (sec)
@@ -149,12 +183,20 @@ export class StepSequencer {
   constructor(p5, synth) {
     this.p5 = p5;
     this.synth = synth;
+
     this.play_button = this.p5.createButton('Play');
     this.play_button.position(10, 150);
     this.play_button.mousePressed(() => this.StartLoop());
+
     this.stop_button = this.p5.createButton('Stop');
     this.stop_button.position(100, 150);
     this.stop_button.mousePressed(() => this.StopLoop());
+
+    this.release_slider = this.p5.createSlider(0, 500, 0, 50);
+    this.release_slider.position(10, 200);
+
+    this.first_knob = new Knob(20, 20, 15);
+
     this.Hide();
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
@@ -210,12 +252,15 @@ export class StepSequencer {
     if (!this.started) {
       this.stop_button.show();
       this.play_button.show();
+      this.release_slider.show();
       this.started = true;
     }
+    this.first_knob.Draw(this.p5);
   }
   Hide() {
     this.stop_button.hide();
     this.play_button.hide();
+    this.release_slider.hide();
     this.started = false;
   }
 }
