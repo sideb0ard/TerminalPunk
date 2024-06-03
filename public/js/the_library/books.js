@@ -95,7 +95,6 @@ export class Book {
 
 export class Bookshelf {
   constructor(x, y, width, height) {
-    console.log("TREAT YO SHELF! ", x, y, width, height);
     this.x = x;
     this.y = y;
     this.width = width;

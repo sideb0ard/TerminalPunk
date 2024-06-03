@@ -13,7 +13,6 @@ import {
 
 import {
   PunkSynth,
-  StepSequencer,
 } from "./synth/punksynth.js"
 
 import {
@@ -138,7 +137,6 @@ class Terminal {
     this.bot = new Bot(p);
 
     this.punk_synth = new PunkSynth(this.p5);
-    this.step_sequencer = new StepSequencer(this.p5, this.punk_synth);
 
     this.text_font = p.loadFont('fonts/zxspectrum7-nroz0.ttf');
 
@@ -177,11 +175,11 @@ class Terminal {
     if (Environment.mode == Modes.THE_LIBRARY) {
       if (this.music_playing === false) {
         this.music_playing = true;
-        this.step_sequencer.StartLoop();
+        this.punk_synth.StartLoop();
       }
       this.the_library.GameLoop();
     } else if (Environment.mode == Modes.DSP) {
-      this.step_sequencer.Display();
+      this.punk_synth.Display();
     } else {
       this.CommandModeLoop();
     }
@@ -281,7 +279,7 @@ class Terminal {
       if (key == 'Escape') {
         Environment.mode = Modes.COMMAND;
         Environment.pwd = "/";
-        this.step_sequencer.StopLoop();
+        this.punk_synth.StopLoop();
         this.music_playing = false;
       }
       if (key === 'r' && (this.the_library.state == GameState.WON || this.the_library.state === GameState.LOST)) {
@@ -291,10 +289,15 @@ class Terminal {
       if (key == 'Escape') {
         Environment.mode = Modes.COMMAND;
         Environment.pwd = "/";
-        this.step_sequencer.StopLoop();
-        this.step_sequencer.Hide();
+        this.punk_synth.StopLoop();
         this.music_playing = false;
       }
+    }
+  }
+
+  MousePressed() {
+    if (Environment.mode == Modes.DSP) {
+      this.punk_synth.MousePressed();
     }
   }
 
@@ -334,8 +337,8 @@ class Terminal {
 
   DisplayLine(type, line) {
 
-    //this.p5.textFont("monospace", fontSize);
-    this.p5.textFont(this.text_font, fontSize);
+    this.p5.textFont("monospace", fontSize);
+    //this.p5.textFont(this.text_font, fontSize);
     if (type === SCREEN_ENTRY_USER_TYPE) {
       this.p5.fill(this.cursor.color);;
       line = shellIcon + line;

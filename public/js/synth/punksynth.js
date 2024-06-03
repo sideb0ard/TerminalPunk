@@ -1,3 +1,7 @@
+import {
+  BOT_DISPLAY_HEIGHT,
+} from '../bot.js'
+
 let vibrato_amount = 0.5;
 let vibrato_speed = 70;
 
@@ -11,7 +15,22 @@ let constantOneCurve = new Float32Array(2);
 constantOneCurve[0] = 1;
 constantOneCurve[1] = 1;
 
-export class PunkSynth {
+const SYNTH_OUTLINE_STROKE = 3;
+const SYNTH_MARGIN = 5;
+
+const SYNTH_HIGHLIGHT_COLOR = 'Lime'
+const SYNTH_TEXT_COLOR = 'Chartreuse';
+const SYNTH_ALT_COLOR = 'LawnGreen';
+
+function CheckPointInsideArea(px, py, area_x, area_y, area_width, area_height) {
+  if ((px >= area_x && px <= area_x + area_width) &&
+    (py >= area_y && py <= area_y + area_height)) {
+    return true;
+  }
+  return false;
+}
+
+class SynthEngine {
   constructor(p5) {
     console.log("YO PYUNK SYNTH!", p5);
     this.p5 = p5;
@@ -142,6 +161,20 @@ export class PunkSynth {
   }
 }
 
+const buttonCurve = 10;
+
+class Button {
+  constructor(x, y, w, h) {
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+  }
+  Draw(p5) {
+    p5.rect(this.x, this.y, this.w, this.h, buttonCurve)
+  }
+}
+
 class Knob {
   constructor(x, y, r) {
     this.x = x;
@@ -179,25 +212,34 @@ class Panel {
 const lookahead = 25.0; // How frequently to call scheduling function (in milliseconds)
 const schedule_ahead_time = 0.1; // How far ahead to schedule audio (sec)
 
-export class StepSequencer {
-  constructor(p5, synth) {
+export class PunkSynth {
+  constructor(p5) {
     this.p5 = p5;
-    this.synth = synth;
+    this.synth = new SynthEngine(p5);
 
-    this.play_button = this.p5.createButton('Play');
-    this.play_button.position(10, 150);
-    this.play_button.mousePressed(() => this.StartLoop());
+    // this.play_button = this.p5.createButton('Play');
+    // this.play_button.position(10, 150);
+    // this.play_button.mousePressed(() => this.StartLoop());
 
-    this.stop_button = this.p5.createButton('Stop');
-    this.stop_button.position(100, 150);
-    this.stop_button.mousePressed(() => this.StopLoop());
+    // this.stop_button = this.p5.createButton('Stop');
+    // this.stop_button.position(100, 150);
+    // this.stop_button.mousePressed(() => this.StopLoop());
 
-    this.release_slider = this.p5.createSlider(0, 500, 0, 50);
-    this.release_slider.position(10, 200);
+    // this.release_slider = this.p5.createSlider(0, 500, 0, 50);
+    // this.release_slider.position(10, 200);
+
+    this.start_button_x = 0;
+    this.start_button_y = 0;
+    this.start_button_width = 100;
+    this.start_button_height = 30;
+
+    this.stop_button_x = 0;
+    this.stop_button_y = 0;
+    this.stop_button_width = 100;
+    this.stop_button_height = 30;
 
     this.first_knob = new Knob(20, 20, 15);
 
-    this.Hide();
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
     this.melodies = [this.melody1, this.melody2];
@@ -248,19 +290,60 @@ export class StepSequencer {
     clearTimeout(this.time_id);
   }
 
-  Display() {
-    if (!this.started) {
-      this.stop_button.show();
-      this.play_button.show();
-      this.release_slider.show();
-      this.started = true;
+  MousePressed() {
+    if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height)) {
+      this.StartLoop();
+    } else if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height)) {
+      this.StopLoop();
     }
-    this.first_knob.Draw(this.p5);
   }
-  Hide() {
-    this.stop_button.hide();
-    this.play_button.hide();
-    this.release_slider.hide();
-    this.started = false;
+
+  Display() {
+    // outer box
+    let display_height = this.p5.windowHeight - BOT_DISPLAY_HEIGHT - (SYNTH_MARGIN * 2);
+    let display_width = this.p5.windowWidth - (SYNTH_MARGIN * 2);
+    let outer_x = SYNTH_MARGIN;
+    let outer_y = BOT_DISPLAY_HEIGHT + SYNTH_MARGIN;
+    this.p5.stroke(SYNTH_HIGHLIGHT_COLOR);
+    this.p5.strokeWeight(SYNTH_OUTLINE_STROKE);
+    this.p5.noFill();
+    this.p5.rect(outer_x, outer_y, display_width, display_height, 20);
+
+    // top section inner box
+    let top_height = display_height / 2 - (SYNTH_MARGIN * 2);
+    let top_width = display_width - (SYNTH_MARGIN * 2);
+    let top_x = outer_x + SYNTH_MARGIN;
+    let top_y = outer_y + SYNTH_MARGIN;
+    this.p5.stroke(SYNTH_ALT_COLOR);
+    this.p5.strokeWeight(1);
+    this.p5.rect(top_x, top_y, top_width, top_height, 20);
+    //this.first_knob.Draw(this.p5);
+    //
+    // bottom section inner box
+    let bottom_height = top_height; // both sections are equal size
+    let bottom_width = top_width;
+    let bottom_x = top_x;
+    let bottom_y = top_y + top_height;
+    this.p5.stroke(SYNTH_ALT_COLOR);
+    this.p5.strokeWeight(1);
+    this.p5.rect(bottom_x, bottom_y, bottom_width, bottom_height, 20);
+
+    this.start_button_x = top_x + 20;
+    this.start_button_y = top_y + 20;
+    this.p5.stroke('white');
+    this.p5.fill('red');
+    this.p5.rect(this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height, 2);
+    this.p5.fill('white');
+    this.p5.textSize(23);
+    this.p5.text('START', this.start_button_x + 5, this.start_button_y + 23);
+
+    this.stop_button_x = top_x + 130;
+    this.stop_button_y = top_y + 20;
+    this.p5.stroke('white');
+    this.p5.fill('OliveDrab');
+    this.p5.rect(this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height, 2);
+    this.p5.fill('white');
+    this.p5.textSize(23);
+    this.p5.text('STOP', this.stop_button_x + 15, this.stop_button_y + 23);
   }
 }

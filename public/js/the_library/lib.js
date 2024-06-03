@@ -125,7 +125,9 @@ export class TheLibrary {
     for (let i = 0; i < num_bookshelves; i++) {
       this.shelves.push(new Bookshelf(0, this.top_margin + (i * shelf_height), shelf_width, shelf_height));
     }
-    this.agent.SetJumpPower(height / 32);
+    if (this.has_started) {
+      this.agent.SetJumpPower(height / 32);
+    }
   }
 
   DisplayScores() {

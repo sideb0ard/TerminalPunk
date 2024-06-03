@@ -1,7 +1,7 @@
 // const BotWidth = 14;
 // const this.pixWidth = 7;
 
-const BOT_DISPLAY_HEIGHT = 120;
+export const BOT_DISPLAY_HEIGHT = 120;
 const WURDS_DISPLAY_TIME = 240; // frames;
 const SPEAKING_TIME = 60; // frames;
 const FONTSIZE = 38;
@@ -418,6 +418,7 @@ class Bot {
   }
 
   Display() {
+    this.p5.stroke(0);
     this.p5.fill(0, 0, 0);
     this.p5.rect(0, 0, this.p5.windowWidth, BOT_DISPLAY_HEIGHT);
     let topx = 10;
