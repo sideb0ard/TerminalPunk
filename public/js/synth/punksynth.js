@@ -175,39 +175,50 @@ class Button {
   }
 }
 
+class Panel {
+  constructor(num_knobs) {
+    this.num_knobs = num_knobs;
+    this.knobs = [];
+    for (let i = 0; i < this.num_knobs; i++) {
+      this.knobs.push(new Knob());
+    }
+  }
+  Draw(p5, x, y, knob_width, knob_height) {
+    let knob_diameter = Math.min(knob_width, knob_height);
+    let knob_radius = knob_diameter / 2;
+    for (let i = 0; i < this.num_knobs; i++) {
+      this.knobs[i].Draw(p5, x + knob_radius + i * knob_width, y + knob_radius, knob_radius - SYNTH_MARGIN * 2);
+    }
+  }
+}
+
 class Knob {
-  constructor(x, y, r) {
-    this.x = x;
-    this.y = y;
-    this.radius = r;
+  constructor() {
     this.angle = 0;
     this.offset_angle = 0;
     this.dragging = false;
   }
 
-  Draw(p5) {
+  Draw(p5, x, y, r) {
     if (this.dragging) {
-      let dx = p5.mouseX - this.x;
-      let dy = p5.mouseY - this.y;
+      let dx = p5.mouseX - x;
+      let dy = p5.mouseY - y;
       let mouse_angle = p5.atan2(dy, dx);
       this.angle = mouse_angle - this.offset_angle;
     }
 
+    //console.log("KNOBDRAW! x:", x, " y:", y, "r:", r);
+
+    p5.fill(0);
     p5.push();
     p5.strokeWeight(2);
-    p5.translate(this.x, this.y);
+    p5.translate(x, y);
     p5.rotate(this.angle);
-    p5.circle(0, 0, this.radius * 2);
-    p5.line(0, 0, this.radius, 0);
+    p5.circle(0, 0, r * 2);
+    p5.line(0, 0, r, 0);
     p5.pop();
-    p5.fill(0);
   }
 }
-
-class Panel {
-  constructor() {}
-}
-
 
 const lookahead = 25.0; // How frequently to call scheduling function (in milliseconds)
 const schedule_ahead_time = 0.1; // How far ahead to schedule audio (sec)
@@ -216,17 +227,6 @@ export class PunkSynth {
   constructor(p5) {
     this.p5 = p5;
     this.synth = new SynthEngine(p5);
-
-    // this.play_button = this.p5.createButton('Play');
-    // this.play_button.position(10, 150);
-    // this.play_button.mousePressed(() => this.StartLoop());
-
-    // this.stop_button = this.p5.createButton('Stop');
-    // this.stop_button.position(100, 150);
-    // this.stop_button.mousePressed(() => this.StopLoop());
-
-    // this.release_slider = this.p5.createSlider(0, 500, 0, 50);
-    // this.release_slider.position(10, 200);
 
     this.start_button_x = 0;
     this.start_button_y = 0;
@@ -238,8 +238,10 @@ export class PunkSynth {
     this.stop_button_width = 100;
     this.stop_button_height = 30;
 
-    this.first_knob = new Knob(20, 20, 15);
-
+    this.adsr_panel = new Panel(4);
+    this.lfo_panel = new Panel(2);
+    this.filter_panel = new Panel(2);
+    this.panels = [this.adsr_panel, this.lfo_panel, this.filter_panel];
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
     this.melodies = [this.melody1, this.melody2];
@@ -317,8 +319,8 @@ export class PunkSynth {
     this.p5.stroke(SYNTH_ALT_COLOR);
     this.p5.strokeWeight(1);
     this.p5.rect(top_x, top_y, top_width, top_height, 20);
-    //this.first_knob.Draw(this.p5);
-    //
+
+
     // bottom section inner box
     let bottom_height = top_height; // both sections are equal size
     let bottom_width = top_width;
@@ -328,8 +330,8 @@ export class PunkSynth {
     this.p5.strokeWeight(1);
     this.p5.rect(bottom_x, bottom_y, bottom_width, bottom_height, 20);
 
-    this.start_button_x = top_x + 20;
-    this.start_button_y = top_y + 20;
+    this.start_button_x = top_x + SYNTH_MARGIN;
+    this.start_button_y = top_y + SYNTH_MARGIN;
     this.p5.stroke('white');
     this.p5.fill('red');
     this.p5.rect(this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height, 2);
@@ -337,13 +339,26 @@ export class PunkSynth {
     this.p5.textSize(23);
     this.p5.text('START', this.start_button_x + 5, this.start_button_y + 23);
 
-    this.stop_button_x = top_x + 130;
-    this.stop_button_y = top_y + 20;
+    this.stop_button_x = top_x + SYNTH_MARGIN;
+    this.stop_button_y = this.start_button_y + this.start_button_height + SYNTH_MARGIN;
     this.p5.stroke('white');
     this.p5.fill('OliveDrab');
     this.p5.rect(this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height, 2);
     this.p5.fill('white');
     this.p5.textSize(23);
     this.p5.text('STOP', this.stop_button_x + 15, this.stop_button_y + 23);
+
+    let all_panels_width = top_width - this.start_button_width - SYNTH_MARGIN * 4;
+    let num_knobs = 0;
+    this.panels.forEach((el) => num_knobs += el.num_knobs);
+
+    let knob_width = all_panels_width / num_knobs;
+
+    let kx = this.start_button_x + this.start_button_width + SYNTH_MARGIN;
+    let ky = this.start_button_y + SYNTH_MARGIN;
+    this.panels.forEach((p) => {
+      p.Draw(this.p5, kx, ky, knob_width, top_height);
+      kx += p.num_knobs * knob_width;
+    });
   }
 }
