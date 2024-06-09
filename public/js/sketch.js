@@ -23,7 +23,10 @@ export default function sketch(p) {
     p.terminal.KeyPressed(p.keyCode, p.key);
   }
   p.mousePressed = () => {
-    p.terminal.MousePressed();
+    p.terminal.mousePressed();
+  }
+  p.mouseReleased = () => {
+    p.terminal.mouseReleased();
   }
 
   p.windowResized = () => {

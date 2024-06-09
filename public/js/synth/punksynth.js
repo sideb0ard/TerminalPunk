@@ -35,11 +35,18 @@ class SynthEngine {
     console.log("YO PYUNK SYNTH!", p5);
     this.p5 = p5;
 
-    this.amp_gain = 0.4;
+    this.amp_gain = 0.3;
     this.amp_sustain = 0.7;
-    this.amp_sustain_time = 0;
-    this.amp_attack = 0.1;
-    this.amp_release = 0.1;
+    this.amp_sustain_time = 0.5;
+    this.amp_attack = 0.2;
+    this.amp_decay = 0.2;
+    this.amp_release = 0.2;
+
+    this.lfo_rate = 3;
+    this.lfo_intensity = 1;
+
+    this.filter_cutoff = 300;
+    this.filter_peak = 1;
 
     // https://github.com/pendragon-andyh/WebAudio-PulseOscillator/blob/master/example-synth.html#L207
     const context = this.p5.getAudioContext();
@@ -94,6 +101,7 @@ class SynthEngine {
 
     const amp_gain = this.amp_gain;
     const amp_attack = this.amp_attack;
+    const amp_decay = this.amp_decay;
     const amp_release = this.amp_release;
     let amp_sustain_time = this.amp_sustain_time;
     const amp_sustain = this.amp_sustain;
@@ -101,20 +109,21 @@ class SynthEngine {
     return {
       start: function(startTime) {
         console.log("NOTEON THIS", this);
-        startTime = startTime || context.currenTime;
+        startTime = startTime || context.currentTime;
+        amp.gain.linearRampToValueAtTime(amp_gain, startTime + amp_attack);
+        amp.gain.linearRampToValueAtTime(amp_gain * amp_sustain, amp_decay);
+        amp.gain.linearRampToValueAtTime(amp_gain * amp_sustain, amp_sustain_time);
         osc.start(startTime);
         //lfo.start(startTime);
-        amp_sustain_time = startTime + amp_attack + amp_release;
-        console.log("VALZ:", amp_sustain_time, amp_attack, amp_release);
-        amp.gain.linearRampToValueAtTime(amp_gain, startTime + amp_attack);
-        amp.gain.linearRampToValueAtTime(amp_gain * amp_sustain, amp_sustain_time);
       },
       stop: function(releaseTime) {
         console.log("NOTEOFFFF");
         releaseTime = releaseTime || context.currentTime;
 
         let stopTime = Math.max(releaseTime, amp_sustain_time) + amp_release;
+        amp.gain.linearRampToValueAtTime(0, stopTime);
         osc.stop(stopTime);
+        //lfo.stop(stopTime);
 
       }
     }
@@ -129,7 +138,7 @@ class SynthEngine {
 
     let osc = this.CreateNote(freq);
     osc.start(time);
-    osc.stop(time + 0.5);
+    osc.stop(time + 0.1);
     //osc.disconnect(time + 0.7);
 
   }
@@ -190,24 +199,65 @@ class Panel {
       this.knobs[i].Draw(p5, x + knob_radius + i * knob_width, y + knob_radius, knob_radius - SYNTH_MARGIN * 2);
     }
   }
+  mousePressed(p5) {
+    this.knobs.forEach((k) => {
+      k.mousePressed(p5);
+    });
+  }
+  mouseReleased(p5) {
+    this.knobs.forEach((k) => {
+      k.mouseReleased(p5);
+    });
+  }
 }
 
 class Knob {
   constructor() {
-    this.angle = 0;
-    this.offset_angle = 0;
+    this.angle = 2.083;
+    this.offsetAngle = 0;
+    this.dragging = false;
+    this.x = 0;
+    this.y = 0;
+    this.r = 0;
+
+    this.control_param = null;
+    this.min_val = 0;
+    this.max_val = 1;
+  }
+
+  control(param, min_val, max_val) {
+    this.control_param = param;
+    this.min_val = min_val;
+    this.max_val = max_val;
+  }
+  mousePressed(p5) {
+    if (p5.dist(p5.mouseX, p5.mouseY, this.x, this.y) < this.r) {
+      this.dragging = true;
+      let dx = p5.mouseX - this.x;
+      let dy = p5.mouseY - this.y;
+      this.offsetAngle = p5.atan2(dy, dx) - this.angle;
+    }
+  }
+  mouseReleased(p5) {
     this.dragging = false;
   }
 
   Draw(p5, x, y, r) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
     if (this.dragging) {
       let dx = p5.mouseX - x;
       let dy = p5.mouseY - y;
-      let mouse_angle = p5.atan2(dy, dx);
-      this.angle = mouse_angle - this.offset_angle;
+      let mouseAngle = p5.atan2(dy, dx);
+      let angle = mouseAngle - this.offsetAngle;
+      if (!(angle > 1.047 && angle <= 2.083)) {
+        console.log("ALL GOOD");
+        this.angle = angle;
+      } else {
+        console.log("NOT GOOD");
+      }
     }
-
-    //console.log("KNOBDRAW! x:", x, " y:", y, "r:", r);
 
     p5.fill(0);
     p5.push();
@@ -220,8 +270,8 @@ class Knob {
   }
 }
 
-const lookahead = 25.0; // How frequently to call scheduling function (in milliseconds)
-const schedule_ahead_time = 0.1; // How far ahead to schedule audio (sec)
+const LOOKAHEAD = 25.0; // How frequently to call scheduling function (in milliseconds)
+const SCHEDULE_AHEAD_TIME = 0.1; // How far ahead to schedule audio (sec)
 
 export class PunkSynth {
   constructor(p5) {
@@ -241,7 +291,8 @@ export class PunkSynth {
     this.adsr_panel = new Panel(4);
     this.lfo_panel = new Panel(2);
     this.filter_panel = new Panel(2);
-    this.panels = [this.adsr_panel, this.lfo_panel, this.filter_panel];
+    this.amp = new Panel(1);
+    this.panels = [this.adsr_panel, this.lfo_panel, this.filter_panel, this.amp];
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
     this.melodies = [this.melody1, this.melody2];
@@ -274,11 +325,11 @@ export class PunkSynth {
 
   Scheduler() {
     let context = this.p5.getAudioContext();
-    while (this.next_step_time < context.currentTime + schedule_ahead_time) {
+    while (this.next_step_time < context.currentTime + SCHEDULE_AHEAD_TIME) {
       this.ScheduleStep(this.current_step, this.next_step_time);
       this.NextStep();
     }
-    this.time_id = setTimeout(this.Scheduler.bind(this), lookahead);
+    this.time_id = setTimeout(this.Scheduler.bind(this), LOOKAHEAD);
   }
 
   StartLoop() {
@@ -292,12 +343,25 @@ export class PunkSynth {
     clearTimeout(this.time_id);
   }
 
-  MousePressed() {
+  mousePressed() {
     if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height)) {
       this.StartLoop();
     } else if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height)) {
       this.StopLoop();
     }
+    this.panels.forEach((p) => {
+      p.mousePressed(this.p5);
+    });
+  }
+
+  mouseReleased() {
+    this.panels.forEach((p) => {
+      p.mouseReleased(this.p5);
+    });
+  }
+
+  Lazer() {
+    this.synth.Lazer();
   }
 
   Display() {
@@ -357,7 +421,7 @@ export class PunkSynth {
     let kx = this.start_button_x + this.start_button_width + SYNTH_MARGIN;
     let ky = this.start_button_y + SYNTH_MARGIN;
     this.panels.forEach((p) => {
-      p.Draw(this.p5, kx, ky, knob_width, top_height);
+      p.Draw(this.p5, kx, ky, knob_width, top_height - SYNTH_MARGIN - 2);
       kx += p.num_knobs * knob_width;
     });
   }

@@ -295,9 +295,15 @@ class Terminal {
     }
   }
 
-  MousePressed() {
+  mousePressed() {
     if (Environment.mode == Modes.DSP) {
-      this.punk_synth.MousePressed();
+      this.punk_synth.mousePressed();
+    }
+  }
+
+  mouseReleased() {
+    if (Environment.mode == Modes.DSP) {
+      this.punk_synth.mouseReleased();
     }
   }
 
