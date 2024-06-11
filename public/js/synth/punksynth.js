@@ -86,8 +86,15 @@ class SynthEngine {
     console.log("PUNK SYNTH CREATED!", this.p5);
   }
 
-  CreateNote(freq) {
-    console.log("CREATENOtE");
+  set(param, value) {
+    console.log("YO SET:", param, value, this);
+    if (this[param]) {
+      this[param] = value;
+    }
+  }
+
+  createNote(freq) {
+    //console.log("CREATENOtE");
     const context = this.p5.getAudioContext();
     const amp = context.createGain();
     amp.gain.value = 0;
@@ -97,7 +104,7 @@ class SynthEngine {
     osc.frequency.value = freq;
     osc.connect(amp);
 
-    console.log("OSC:", osc);
+    //console.log("OSC:", osc);
 
     const amp_gain = this.amp_gain;
     const amp_attack = this.amp_attack;
@@ -108,7 +115,7 @@ class SynthEngine {
 
     return {
       start: function(startTime) {
-        console.log("NOTEON THIS", this);
+        //console.log("NOTEON THIS", this);
         startTime = startTime || context.currentTime;
         amp.gain.linearRampToValueAtTime(amp_gain, startTime + amp_attack);
         amp.gain.linearRampToValueAtTime(amp_gain * amp_sustain, amp_decay);
@@ -117,7 +124,7 @@ class SynthEngine {
         //lfo.start(startTime);
       },
       stop: function(releaseTime) {
-        console.log("NOTEOFFFF");
+        //console.log("NOTEOFFFF");
         releaseTime = releaseTime || context.currentTime;
 
         let stopTime = Math.max(releaseTime, amp_sustain_time) + amp_release;
@@ -130,13 +137,13 @@ class SynthEngine {
   }
 
   NoteOn(freq, time) {
-    console.log("NOTON", time);
+    //console.log("NOTON", time);
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
       context.resume();
     }
 
-    let osc = this.CreateNote(freq);
+    let osc = this.createNote(freq);
     osc.start(time);
     osc.stop(time + 0.1);
     //osc.disconnect(time + 0.7);
@@ -152,7 +159,7 @@ class SynthEngine {
 
     const osc = new OscillatorNode(context, {
       type: "square",
-      frequency: 500,
+      frequency: 100,
     });
 
     const att_rel = new GainNode(context);
@@ -163,7 +170,7 @@ class SynthEngine {
 
     osc.connect(att_rel);
     att_rel.connect(context.destination);
-    osc.frequency.setTargetAtTime(200, time, time + 0.3);
+    osc.frequency.setTargetAtTime(70, time, time + 0.3);
     osc.start(time);
     osc.stop(time + this.pulse_time);
 
@@ -192,7 +199,16 @@ class Panel {
       this.knobs.push(new Knob());
     }
   }
-  Draw(p5, x, y, knob_width, knob_height) {
+
+  connect(knob_num, control_target, control_param, control_min, control_max) {
+    console.log("Connectin???g ", knob_num, " to ", control_target, this.knobs);
+    if (knob_num < this.knobs.length) {
+      console.log("Connecting ", knob_num, " to ", control_target);
+      this.knobs[knob_num].control(control_target, control_param, control_min, control_max);
+    }
+  }
+
+  draw(p5, x, y, knob_width, knob_height) {
     let knob_diameter = Math.min(knob_width, knob_height);
     let knob_radius = knob_diameter / 2;
     for (let i = 0; i < this.num_knobs; i++) {
@@ -214,7 +230,7 @@ class Panel {
 class Knob {
   constructor() {
     this.angle = 2.083;
-    this.offsetAngle = 0;
+    this.offsetAngle = this.angle;
     this.dragging = false;
     this.x = 0;
     this.y = 0;
@@ -223,19 +239,23 @@ class Knob {
     this.control_param = null;
     this.min_val = 0;
     this.max_val = 1;
+
+    this.control_pct_val = 0;
   }
 
-  control(param, min_val, max_val) {
+  control(target, param, min_val, max_val) {
+    this.control_target = target;
     this.control_param = param;
     this.min_val = min_val;
     this.max_val = max_val;
   }
+
   mousePressed(p5) {
     if (p5.dist(p5.mouseX, p5.mouseY, this.x, this.y) < this.r) {
       this.dragging = true;
-      let dx = p5.mouseX - this.x;
-      let dy = p5.mouseY - this.y;
-      this.offsetAngle = p5.atan2(dy, dx) - this.angle;
+      //let dx = p5.mouseX - this.x;
+      //let dy = p5.mouseY - this.y;
+      //this.offsetAngle = p5.atan2(dy, dx) - this.angle;
     }
   }
   mouseReleased(p5) {
@@ -249,13 +269,29 @@ class Knob {
     if (this.dragging) {
       let dx = p5.mouseX - x;
       let dy = p5.mouseY - y;
-      let mouseAngle = p5.atan2(dy, dx);
-      let angle = mouseAngle - this.offsetAngle;
+      //let mouseAngle = p5.atan2(dy, dx);
+      //let angle = mouseAngle - this.offsetAngle;
+      let angle = p5.atan2(dy, dx);
       if (!(angle > 1.047 && angle <= 2.083)) {
-        console.log("ALL GOOD");
+        // console.log("ALL GOOD:", angle);
         this.angle = angle;
       } else {
-        console.log("NOT GOOD");
+        //console.log("NOT GOOD:", angle);
+      }
+      //let calcAngle = 0;
+      //if (this.angle < 0) {
+      //  calcAngle = p5.map(this.angle, -p5.PI, 0, p5.PI, 0);
+      //} else if (this.angle > 0) {
+      //  calcAngle = p5.map(this.angle, 0, p5.PI, p5.TWO_PI, p5.PI);
+      //}
+      if (this.angle < 0) {
+        this.control_pct_val = p5.map(this.angle, -p5.PI, 0, 0.3, 0.9);
+      } else if (this.angle > 0) {
+        this.control_pct_val = p5.map(this.angle, 0, p5.PI, 0.9, 1.5) % 1.2;
+      }
+      if (this.control_target) {
+        let range = this.min_val + this.max_val;
+        this.control_target.set(this.control_param, this.min_val + (this.control_pct_val * range));
       }
     }
 
@@ -267,6 +303,12 @@ class Knob {
     p5.circle(0, 0, r * 2);
     p5.line(0, 0, r, 0);
     p5.pop();
+
+
+    //p5.textAlign(p5.CENTER);
+    //p5.text(p5.int(p5.degrees(calcAngle)), x, y + r + 20);
+    p5.text(this.control_pct_val, x, y + r + 20);
+
   }
 }
 
@@ -289,10 +331,20 @@ export class PunkSynth {
     this.stop_button_height = 30;
 
     this.adsr_panel = new Panel(4);
+    this.adsr_panel.connect(0, this.synth, "amp_attack", 0.1, 5);
+    this.adsr_panel.connect(1, this.synth, "amp_decay", 0.1, 5);
+    this.adsr_panel.connect(2, this.synth, "amp_sustain", 0.1, 5);
+    this.adsr_panel.connect(3, this.synth, "amp_release", 0.1, 5);
+
     this.lfo_panel = new Panel(2);
+
     this.filter_panel = new Panel(2);
+
     this.amp = new Panel(1);
+    this.amp.connect(0, this.synth, "amp_gain", 0, 1);
+
     this.panels = [this.adsr_panel, this.lfo_panel, this.filter_panel, this.amp];
+
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
     this.melodies = [this.melody1, this.melody2];
@@ -344,9 +396,19 @@ export class PunkSynth {
   }
 
   mousePressed() {
-    if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height)) {
+    if (CheckPointInsideArea(this.p5.mouseX,
+        this.p5.mouseY,
+        this.start_button_x,
+        this.start_button_y,
+        this.start_button_width,
+        this.start_button_height)) {
       this.StartLoop();
-    } else if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height)) {
+    } else if (CheckPointInsideArea(this.p5.mouseX,
+        this.p5.mouseY,
+        this.stop_button_x,
+        this.stop_button_y,
+        this.stop_button_width,
+        this.stop_button_height)) {
       this.StopLoop();
     }
     this.panels.forEach((p) => {
@@ -421,7 +483,7 @@ export class PunkSynth {
     let kx = this.start_button_x + this.start_button_width + SYNTH_MARGIN;
     let ky = this.start_button_y + SYNTH_MARGIN;
     this.panels.forEach((p) => {
-      p.Draw(this.p5, kx, ky, knob_width, top_height - SYNTH_MARGIN - 2);
+      p.draw(this.p5, kx, ky, knob_width, top_height - SYNTH_MARGIN - 2);
       kx += p.num_knobs * knob_width;
     });
   }
