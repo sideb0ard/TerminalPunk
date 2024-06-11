@@ -17,6 +17,8 @@ function Eval(env, node) {
     return new pobject.Boolean(node.value_);
   } else if (node instanceof ast.LsStatement) {
     return EvalLsStatement(env, node);
+  } else if (node instanceof ast.HelpStatement) {
+    return EvalHelpStatement(env, node);
   } else if (node instanceof ast.CatStatement) {
     return EvalCatStatement(env, node);
   } else if (node instanceof ast.PwdStatement) {
@@ -130,6 +132,12 @@ function EvalLsStatement(env, node) {
     return str;
   }
   return new pobject.Null();
+}
+
+function EvalHelpStatement(env, node) {
+  let str = new pobject.String();
+  str.Append("Navigate this UNIX filesystem via standard shell commands to unravel the mystery of Terminal Punk!");
+  return str;
 }
 
 function EvalCatStatement(env, node) {

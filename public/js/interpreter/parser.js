@@ -87,6 +87,8 @@ export class Parser {
     switch (this.cur_token_.token_type) {
       case token.LET:
         return this.ParseLetStatement();
+      case token.HELP:
+        return this.ParseHelpStatement();
       case token.RETURN:
         return this.ParseReturnStatement();
       case token.CD:
@@ -182,6 +184,17 @@ export class Parser {
 
     return stmt;
   }
+
+  ParseHelpStatement() {
+    let stmt = new ast.HelpStatement(this.cur_token_);
+
+    if (this.CurTokenIs(token.SEMICOLON)) {
+      this.NextToken();
+    }
+
+    return stmt;
+  }
+
 
   ParseCatStatement() {
     let stmt = new ast.CatStatement(this.cur_token_);

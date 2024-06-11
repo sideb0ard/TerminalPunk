@@ -59,6 +59,17 @@ class LsStatement extends Statement {
   }
 }
 
+class HelpStatement extends Statement {
+  constructor(token) {
+    super(token);
+    this.target_;
+  }
+
+  String() {
+    console.log(this.token_.literal + " " + this.target_);
+  }
+}
+
 class CatStatement extends Statement {
   constructor(token) {
     super(token);
@@ -184,6 +195,7 @@ export {
   NumberLiteral,
   LetStatement,
   LsStatement,
+  HelpStatement,
   PwdStatement,
   Node,
   PrefixExpression,
