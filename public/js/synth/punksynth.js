@@ -176,141 +176,73 @@ class SynthEngine {
 
   }
 }
+/////////// END SYNTH ENGINE /////////////////////////////////////////////
+
+/////////// BEGIN UI /////////////////////////////////////////////////////
 
 const buttonCurve = 10;
+const min_slider_size = 30;
 
-class Button {
-  constructor(x, y, w, h) {
-    this.x = x;
-    this.y = y;
-    this.w = w;
-    this.h = h;
+class Slider {
+  constructor(p5, control_target, control_param, min, max, start_val) {
+    this.slider = p5.createSlider(0, 100, start_val);
+    this.min_val = min;
+    this.max_val = max;
+    this.control_target = control_target;
+    this.control_param = control_param;
+    this.control_pct = 0;
   }
-  Draw(p5) {
-    p5.rect(this.x, this.y, this.w, this.h, buttonCurve)
+
+  draw(p5, x, y, width) {
+    this.slider.position(x, y);
+    this.slider.size(width);
+    let current_pct = this.slider.value();
+    if (current_pct !== this.control_pct) {
+      console.log("CURR IS NOT SAME AS THIS:", current_pct, this.control_pct);
+      let range = this.max_val - this.min_val;
+      let new_val = this.min_val + (current_pct / 100 * range);
+      console.log("NEW VAL:", new_val);
+      this.control_pct = current_pct;
+    }
   }
 }
 
 class Panel {
-  constructor(num_knobs) {
-    this.num_knobs = num_knobs;
-    this.knobs = [];
-    for (let i = 0; i < this.num_knobs; i++) {
-      this.knobs.push(new Knob());
-    }
+  constructor(p5, name) {
+    this.p5 = p5;
+    this.name = name;
+    this.sliders = [];
+    this.margin = 10;
   }
 
-  connect(knob_num, control_target, control_param, control_min, control_max) {
-    console.log("Connectin???g ", knob_num, " to ", control_target, this.knobs);
-    if (knob_num < this.knobs.length) {
-      console.log("Connecting ", knob_num, " to ", control_target);
-      this.knobs[knob_num].control(control_target, control_param, control_min, control_max);
-    }
+  addSlider(control_target, control_param, control_min, control_max, val) {
+    this.sliders.push(new Slider(this.p5, control_target, control_param, control_min, control_max, val));
   }
 
-  draw(p5, x, y, knob_width, knob_height) {
-    let knob_diameter = Math.min(knob_width, knob_height);
-    let knob_radius = knob_diameter / 2;
-    for (let i = 0; i < this.num_knobs; i++) {
-      this.knobs[i].Draw(p5, x + knob_radius + i * knob_width, y + knob_radius, knob_radius - SYNTH_MARGIN * 2);
+  draw(p5, x, y, slider_width, max_slider_height) {
+    let px = x + this.margin;
+    let py = y + this.margin;
+    let width = slider_width - 2 * this.margin;
+    let height = max_slider_height - 2 * this.margin;
+    p5.rect(px, py, width, height, 20);
+
+    px += this.margin;
+    py += this.margin * 3;
+    width -= this.margin * 2;
+    p5.textSize(30);
+    p5.text(this.name, px, py);
+
+    py += this.margin;
+    for (let i = 0; i < this.sliders.length; i++) {
+      this.sliders[i].draw(p5, px, py + i * min_slider_size, width);
     }
-  }
-  mousePressed(p5) {
-    this.knobs.forEach((k) => {
-      k.mousePressed(p5);
-    });
-  }
-  mouseReleased(p5) {
-    this.knobs.forEach((k) => {
-      k.mouseReleased(p5);
-    });
   }
 }
 
-class Knob {
-  constructor() {
-    this.angle = 2.083;
-    this.offsetAngle = this.angle;
-    this.dragging = false;
-    this.x = 0;
-    this.y = 0;
-    this.r = 0;
-
-    this.control_param = null;
-    this.min_val = 0;
-    this.max_val = 1;
-
-    this.control_pct_val = 0;
-  }
-
-  control(target, param, min_val, max_val) {
-    this.control_target = target;
-    this.control_param = param;
-    this.min_val = min_val;
-    this.max_val = max_val;
-  }
-
-  mousePressed(p5) {
-    if (p5.dist(p5.mouseX, p5.mouseY, this.x, this.y) < this.r) {
-      this.dragging = true;
-      //let dx = p5.mouseX - this.x;
-      //let dy = p5.mouseY - this.y;
-      //this.offsetAngle = p5.atan2(dy, dx) - this.angle;
-    }
-  }
-  mouseReleased(p5) {
-    this.dragging = false;
-  }
-
-  Draw(p5, x, y, r) {
-    this.x = x;
-    this.y = y;
-    this.r = r;
-    if (this.dragging) {
-      let dx = p5.mouseX - x;
-      let dy = p5.mouseY - y;
-      //let mouseAngle = p5.atan2(dy, dx);
-      //let angle = mouseAngle - this.offsetAngle;
-      let angle = p5.atan2(dy, dx);
-      if (!(angle > 1.047 && angle <= 2.083)) {
-        // console.log("ALL GOOD:", angle);
-        this.angle = angle;
-      } else {
-        //console.log("NOT GOOD:", angle);
-      }
-      //let calcAngle = 0;
-      //if (this.angle < 0) {
-      //  calcAngle = p5.map(this.angle, -p5.PI, 0, p5.PI, 0);
-      //} else if (this.angle > 0) {
-      //  calcAngle = p5.map(this.angle, 0, p5.PI, p5.TWO_PI, p5.PI);
-      //}
-      if (this.angle < 0) {
-        this.control_pct_val = p5.map(this.angle, -p5.PI, 0, 0.3, 0.9);
-      } else if (this.angle > 0) {
-        this.control_pct_val = p5.map(this.angle, 0, p5.PI, 0.9, 1.5) % 1.2;
-      }
-      if (this.control_target) {
-        let range = this.min_val + this.max_val;
-        this.control_target.set(this.control_param, this.min_val + (this.control_pct_val * range));
-      }
-    }
-
-    p5.fill(0);
-    p5.push();
-    p5.strokeWeight(2);
-    p5.translate(x, y);
-    p5.rotate(this.angle);
-    p5.circle(0, 0, r * 2);
-    p5.line(0, 0, r, 0);
-    p5.pop();
+/////////// END UI /////////////////////////////////////////////////////
 
 
-    //p5.textAlign(p5.CENTER);
-    //p5.text(p5.int(p5.degrees(calcAngle)), x, y + r + 20);
-    p5.text(this.control_pct_val, x, y + r + 20);
-
-  }
-}
+/////////// BEGIN SYNTH /////////////////////////////////////////////////////
 
 const LOOKAHEAD = 25.0; // How frequently to call scheduling function (in milliseconds)
 const SCHEDULE_AHEAD_TIME = 0.1; // How far ahead to schedule audio (sec)
@@ -320,30 +252,27 @@ export class PunkSynth {
     this.p5 = p5;
     this.synth = new SynthEngine(p5);
 
-    this.start_button_x = 0;
-    this.start_button_y = 0;
-    this.start_button_width = 100;
-    this.start_button_height = 30;
+    this.adsr_panel = new Panel(this.p5, "ADSR");
+    this.adsr_panel.addSlider(this.synth, "amp_attack", 1, 500, 10);
+    this.adsr_panel.addSlider(this.synth, "amp_decay", 1, 500, 10);
+    this.adsr_panel.addSlider(this.synth, "amp_sustain", 1, 500, 10);
+    this.adsr_panel.addSlider(this.synth, "amp_release", 1, 500, 10);
 
-    this.stop_button_x = 0;
-    this.stop_button_y = 0;
-    this.stop_button_width = 100;
-    this.stop_button_height = 30;
+    this.lfo_panel = new Panel(this.p5, "LFO");
+    this.lfo_panel.addSlider(this.synth, "lfo_rate", 1, 20, 7);
+    this.lfo_panel.addSlider(this.synth, "lfo_intensity", 1, 100, 1);
 
-    this.adsr_panel = new Panel(4);
-    this.adsr_panel.connect(0, this.synth, "amp_attack", 0.1, 5);
-    this.adsr_panel.connect(1, this.synth, "amp_decay", 0.1, 5);
-    this.adsr_panel.connect(2, this.synth, "amp_sustain", 0.1, 5);
-    this.adsr_panel.connect(3, this.synth, "amp_release", 0.1, 5);
+    this.filter_panel = new Panel(this.p5, "Filter");
+    this.filter_panel.addSlider(this.synth, "filter_cutoff", 20, 20000, 8000);
+    this.filter_panel.addSlider(this.synth, "filter_peak", 1, 10, 6);
 
-    this.lfo_panel = new Panel(2);
+    this.amp_panel = new Panel(this.p5, "Volume");
+    this.amp_panel.addSlider(this.synth, "amp_gain", 0, 100, 40);
 
-    this.filter_panel = new Panel(2);
-
-    this.amp = new Panel(1);
-    this.amp.connect(0, this.synth, "amp_gain", 0, 1);
-
-    this.panels = [this.adsr_panel, this.lfo_panel, this.filter_panel, this.amp];
+    this.columns = [];
+    this.columns.push([this.amp_panel]);
+    this.columns.push([this.adsr_panel]);
+    this.columns.push([this.filter_panel, this.lfo_panel]);
 
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
@@ -396,30 +325,30 @@ export class PunkSynth {
   }
 
   mousePressed() {
-    if (CheckPointInsideArea(this.p5.mouseX,
-        this.p5.mouseY,
-        this.start_button_x,
-        this.start_button_y,
-        this.start_button_width,
-        this.start_button_height)) {
-      this.StartLoop();
-    } else if (CheckPointInsideArea(this.p5.mouseX,
-        this.p5.mouseY,
-        this.stop_button_x,
-        this.stop_button_y,
-        this.stop_button_width,
-        this.stop_button_height)) {
-      this.StopLoop();
-    }
-    this.panels.forEach((p) => {
-      p.mousePressed(this.p5);
-    });
+    // if (CheckPointInsideArea(this.p5.mouseX,
+    //     this.p5.mouseY,
+    //     this.start_button_x,
+    //     this.start_button_y,
+    //     this.start_button_width,
+    //     this.start_button_height)) {
+    //   this.StartLoop();
+    // } else if (CheckPointInsideArea(this.p5.mouseX,
+    //     this.p5.mouseY,
+    //     this.stop_button_x,
+    //     this.stop_button_y,
+    //     this.stop_button_width,
+    //     this.stop_button_height)) {
+    //   this.StopLoop();
+    // }
+    // this.panels.forEach((p) => {
+    //   p.mousePressed(this.p5);
+    // });
   }
 
   mouseReleased() {
-    this.panels.forEach((p) => {
-      p.mouseReleased(this.p5);
-    });
+    // this.panels.forEach((p) => {
+    //   p.mouseReleased(this.p5);
+    // });
   }
 
   Lazer() {
@@ -456,35 +385,35 @@ export class PunkSynth {
     this.p5.strokeWeight(1);
     this.p5.rect(bottom_x, bottom_y, bottom_width, bottom_height, 20);
 
-    this.start_button_x = top_x + SYNTH_MARGIN;
-    this.start_button_y = top_y + SYNTH_MARGIN;
-    this.p5.stroke('white');
-    this.p5.fill('red');
-    this.p5.rect(this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height, 2);
-    this.p5.fill('white');
-    this.p5.textSize(23);
-    this.p5.text('START', this.start_button_x + 5, this.start_button_y + 23);
+    //this.start_button_x = top_x + SYNTH_MARGIN;
+    //this.start_button_y = top_y + SYNTH_MARGIN;
+    //this.p5.stroke('white');
+    //this.p5.fill('red');
+    //this.p5.rect(this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height, 2);
+    //this.p5.fill('white');
+    //this.p5.textSize(23);
+    //this.p5.text('START', this.start_button_x + 5, this.start_button_y + 23);
 
-    this.stop_button_x = top_x + SYNTH_MARGIN;
-    this.stop_button_y = this.start_button_y + this.start_button_height + SYNTH_MARGIN;
-    this.p5.stroke('white');
-    this.p5.fill('OliveDrab');
-    this.p5.rect(this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height, 2);
-    this.p5.fill('white');
-    this.p5.textSize(23);
-    this.p5.text('STOP', this.stop_button_x + 15, this.stop_button_y + 23);
+    //this.stop_button_x = top_x + SYNTH_MARGIN;
+    //this.stop_button_y = this.start_button_y + this.start_button_height + SYNTH_MARGIN;
+    //this.p5.stroke('white');
+    //this.p5.fill('OliveDrab');
+    //this.p5.rect(this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height, 2);
+    //this.p5.fill('white');
+    //this.p5.textSize(23);
+    //this.p5.text('STOP', this.stop_button_x + 15, this.stop_button_y + 23);
 
-    let all_panels_width = top_width - this.start_button_width - SYNTH_MARGIN * 4;
-    let num_knobs = 0;
-    this.panels.forEach((el) => num_knobs += el.num_knobs);
+    let all_cols_width = top_width - SYNTH_MARGIN * 2;
+    let col_width = all_cols_width / this.columns.length;
 
-    let knob_width = all_panels_width / num_knobs;
-
-    let kx = this.start_button_x + this.start_button_width + SYNTH_MARGIN;
-    let ky = this.start_button_y + SYNTH_MARGIN;
-    this.panels.forEach((p) => {
-      p.draw(this.p5, kx, ky, knob_width, top_height - SYNTH_MARGIN - 2);
-      kx += p.num_knobs * knob_width;
+    let cx = top_x + SYNTH_MARGIN;
+    let cy = top_y + SYNTH_MARGIN;
+    this.columns.forEach((c) => {
+      let panel_height = top_height / c.length;
+      for (let i = 0; i < c.length; i++) {
+        c[i].draw(this.p5, cx, cy + i * panel_height, col_width, panel_height);
+      }
+      cx += col_width;
     });
   }
 }
