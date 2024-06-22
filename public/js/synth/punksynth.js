@@ -212,7 +212,7 @@ class Panel {
     this.p5 = p5;
     this.name = name;
     this.sliders = [];
-    this.margin = 10;
+    this.margin = 7;
   }
 
   addSlider(control_target, control_param, control_min, control_max, val) {
@@ -224,17 +224,69 @@ class Panel {
     let py = y + this.margin;
     let width = slider_width - 2 * this.margin;
     let height = max_slider_height - 2 * this.margin;
-    p5.rect(px, py, width, height, 20);
+    p5.rect(px, py, width, height, 10);
 
     px += this.margin;
     py += this.margin * 3;
     width -= this.margin * 2;
-    p5.textSize(30);
+    p5.textSize(20);
     p5.text(this.name, px, py);
 
     py += this.margin;
     for (let i = 0; i < this.sliders.length; i++) {
       this.sliders[i].draw(p5, px, py + i * min_slider_size, width);
+    }
+  }
+}
+
+class PianoRoll {
+  constructor(p5) {
+    this.p5 = p5;
+    this.numKeys = 13;
+    this.keyWidth = 70;
+    //this.rowColor = new p5.color(140);
+    //this.blackRowColor = new p5.color(128);
+  }
+
+  draw(x, y, width, height) {
+    console.log("ROLLLL");
+    this.p5.rect(x, y, width, height);
+
+    this.p5.fill(255);
+    this.p5.rect(x, y, this.keyWidth, height);
+    let keyHeight = height / this.numKeys;
+    this.p5.stroke(0);
+    this.p5.noFill();
+    const blackKeys = [1, 3, 6, 8, 10];
+    for (let i = 0; i < this.numKeys; i++) {
+      let fillCol = 255;
+      this.p5.stroke(0);
+      if (blackKeys.includes(this.numKeys - 1 - i)) {
+        fillCol = 0;
+      }
+
+      this.p5.fill(fillCol);
+      this.p5.rect(x, y + i * keyHeight, this.keyWidth, keyHeight);
+    }
+
+    let gridX = x + this.keyWidth;
+    let gridWidth = width - this.keyWidth;
+    let gridHeight = height;
+    let cellWidth = gridWidth / 16;
+    let cellHeight = gridHeight / this.numKeys;
+    for (let i = 0; i < this.numKeys; i++) {
+      let fillCol = 200;
+      if (blackKeys.includes(this.numKeys - 1 - i)) {
+        fillCol = 180;
+      }
+      this.p5.fill(fillCol);
+      this.p5.noStroke();
+      this.p5.rect(gridX, y + i * cellHeight, gridWidth, cellHeight);
+      this.p5.stroke(0);
+      this.p5.noFill();
+      for (let j = 0; j < 16; j++) {
+        this.p5.rect(gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight);
+      }
     }
   }
 }
@@ -273,6 +325,8 @@ export class PunkSynth {
     this.columns.push([this.amp_panel]);
     this.columns.push([this.adsr_panel]);
     this.columns.push([this.filter_panel, this.lfo_panel]);
+
+    this.pianoRoll = new PianoRoll(this.p5);
 
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
@@ -356,7 +410,7 @@ export class PunkSynth {
   }
 
   Display() {
-    // outer box
+    // outer container
     let display_height = this.p5.windowHeight - BOT_DISPLAY_HEIGHT - (SYNTH_MARGIN * 2);
     let display_width = this.p5.windowWidth - (SYNTH_MARGIN * 2);
     let outer_x = SYNTH_MARGIN;
@@ -366,8 +420,8 @@ export class PunkSynth {
     this.p5.noFill();
     this.p5.rect(outer_x, outer_y, display_width, display_height, 20);
 
-    // top section inner box
-    let top_height = display_height / 2 - (SYNTH_MARGIN * 2);
+    // top section container box
+    let top_height = display_height / 5 * 2 - (SYNTH_MARGIN * 2);
     let top_width = display_width - (SYNTH_MARGIN * 2);
     let top_x = outer_x + SYNTH_MARGIN;
     let top_y = outer_y + SYNTH_MARGIN;
@@ -376,33 +430,7 @@ export class PunkSynth {
     this.p5.rect(top_x, top_y, top_width, top_height, 20);
 
 
-    // bottom section inner box
-    let bottom_height = top_height; // both sections are equal size
-    let bottom_width = top_width;
-    let bottom_x = top_x;
-    let bottom_y = top_y + top_height;
-    this.p5.stroke(SYNTH_ALT_COLOR);
-    this.p5.strokeWeight(1);
-    this.p5.rect(bottom_x, bottom_y, bottom_width, bottom_height, 20);
-
-    //this.start_button_x = top_x + SYNTH_MARGIN;
-    //this.start_button_y = top_y + SYNTH_MARGIN;
-    //this.p5.stroke('white');
-    //this.p5.fill('red');
-    //this.p5.rect(this.start_button_x, this.start_button_y, this.start_button_width, this.start_button_height, 2);
-    //this.p5.fill('white');
-    //this.p5.textSize(23);
-    //this.p5.text('START', this.start_button_x + 5, this.start_button_y + 23);
-
-    //this.stop_button_x = top_x + SYNTH_MARGIN;
-    //this.stop_button_y = this.start_button_y + this.start_button_height + SYNTH_MARGIN;
-    //this.p5.stroke('white');
-    //this.p5.fill('OliveDrab');
-    //this.p5.rect(this.stop_button_x, this.stop_button_y, this.stop_button_width, this.stop_button_height, 2);
-    //this.p5.fill('white');
-    //this.p5.textSize(23);
-    //this.p5.text('STOP', this.stop_button_x + 15, this.stop_button_y + 23);
-
+    // top section sliders
     let all_cols_width = top_width - SYNTH_MARGIN * 2;
     let col_width = all_cols_width / this.columns.length;
 
@@ -415,5 +443,22 @@ export class PunkSynth {
       }
       cx += col_width;
     });
+
+    // bottom section container
+    let bottom_height = display_height / 5 * 3 - (SYNTH_MARGIN * 2);
+    let bottom_width = top_width;
+    let bottom_x = top_x;
+    let bottom_y = top_y + top_height;
+    this.p5.stroke(SYNTH_ALT_COLOR);
+    this.p5.strokeWeight(1);
+    this.p5.rect(bottom_x, bottom_y, bottom_width, bottom_height, 10);
+
+    // bottom section piano roll
+    let piano_width = bottom_width - SYNTH_MARGIN * 2;
+    let piano_height = bottom_height - SYNTH_MARGIN * 2;
+    let px = bottom_x + SYNTH_MARGIN;
+    let py = bottom_y + SYNTH_MARGIN;
+    this.pianoRoll.draw(px, py, piano_width, piano_height);
+
   }
 }
