@@ -136,7 +136,7 @@ class SynthEngine {
     }
   }
 
-  NoteOn(freq, time) {
+  noteOn(freq, time) {
     //console.log("NOTON", time);
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
@@ -149,6 +149,8 @@ class SynthEngine {
     //osc.disconnect(time + 0.7);
 
   }
+
+  noteOff(freq, time) {}
 
   Lazer() {
     const context = this.p5.getAudioContext();
@@ -240,24 +242,31 @@ class Panel {
 }
 
 class PianoRoll {
-  constructor(p5) {
+  constructor(p5, engine) {
     this.p5 = p5;
+    this.engine = engine;
     this.numKeys = 13;
-    this.keyWidth = 70;
+    this.octave = 4; // https://computermusicresource.com/midikeys.html
+    this.activeNotes = [];
+    this.oscz = [];
+    //this.keyWidth = 70;
     //this.rowColor = new p5.color(140);
     //this.blackRowColor = new p5.color(128);
   }
 
   draw(x, y, width, height) {
-    console.log("ROLLLL");
     this.p5.rect(x, y, width, height);
 
     this.p5.fill(255);
     this.p5.rect(x, y, this.keyWidth, height);
-    let keyHeight = height / this.numKeys;
     this.p5.stroke(0);
     this.p5.noFill();
     const blackKeys = [1, 3, 6, 8, 10];
+
+    let cellWidth = width / 17;
+    let cellHeight = height / this.numKeys;
+
+    // KEYS
     for (let i = 0; i < this.numKeys; i++) {
       let fillCol = 255;
       this.p5.stroke(0);
@@ -266,14 +275,13 @@ class PianoRoll {
       }
 
       this.p5.fill(fillCol);
-      this.p5.rect(x, y + i * keyHeight, this.keyWidth, keyHeight);
+      this.p5.rect(x, y + i * cellHeight, cellWidth, cellHeight);
     }
 
-    let gridX = x + this.keyWidth;
-    let gridWidth = width - this.keyWidth;
+    // GRID
+    let gridX = x + cellWidth;
+    let gridWidth = width - cellWidth;
     let gridHeight = height;
-    let cellWidth = gridWidth / 16;
-    let cellHeight = gridHeight / this.numKeys;
     for (let i = 0; i < this.numKeys; i++) {
       let fillCol = 200;
       if (blackKeys.includes(this.numKeys - 1 - i)) {
@@ -289,6 +297,41 @@ class PianoRoll {
       }
     }
   }
+
+  mousePressed(x, y, width, height) {
+    let cellWidth = width / 17;
+    let cellHeight = height / this.numKeys;
+
+    // KEY DOWN
+    for (let i = 0; i < this.numKeys; i++) {
+      if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, x, y + i * cellHeight, cellWidth, cellHeight)) {
+        let midiKeyNum = this.numKeys - 1 - i;
+        let midiVal = 12 + this.octave * 12 + midiKeyNum;
+        let freq = this.p5.midiToFreq(midiVal);
+        console.log("KEY DOWN! ", midiKeyNum, " midi val:", midiVal, " freq:", freq);
+        this.activeNotes.push(midiVal);
+        //this.engine.
+        //freq = midiToFreq(midiVal);
+        //this.engine.noteOn(melody[step_number], time);
+        let osc = this.engine.createNote(freq);
+        osc.start(0);
+        this.oscz.push(osc);
+      }
+
+
+    }
+  }
+
+  mouseReleased() {
+    this.activeNotes.forEach((n) => {
+      console.log("NOTE OFF FOR ", n);
+    });
+    this.activeNotes.length = 0;
+    this.oscz.forEach((o) => {
+      o.stop(0);
+    });
+    this.oscz.length = 0;
+  }
 }
 
 /////////// END UI /////////////////////////////////////////////////////
@@ -302,31 +345,35 @@ const SCHEDULE_AHEAD_TIME = 0.1; // How far ahead to schedule audio (sec)
 export class PunkSynth {
   constructor(p5) {
     this.p5 = p5;
-    this.synth = new SynthEngine(p5);
+    this.engine = new SynthEngine(p5);
 
     this.adsr_panel = new Panel(this.p5, "ADSR");
-    this.adsr_panel.addSlider(this.synth, "amp_attack", 1, 500, 10);
-    this.adsr_panel.addSlider(this.synth, "amp_decay", 1, 500, 10);
-    this.adsr_panel.addSlider(this.synth, "amp_sustain", 1, 500, 10);
-    this.adsr_panel.addSlider(this.synth, "amp_release", 1, 500, 10);
+    this.adsr_panel.addSlider(this.engine, "amp_attack", 1, 500, 10);
+    this.adsr_panel.addSlider(this.engine, "amp_decay", 1, 500, 10);
+    this.adsr_panel.addSlider(this.engine, "amp_sustain", 1, 500, 10);
+    this.adsr_panel.addSlider(this.engine, "amp_release", 1, 500, 10);
 
     this.lfo_panel = new Panel(this.p5, "LFO");
-    this.lfo_panel.addSlider(this.synth, "lfo_rate", 1, 20, 7);
-    this.lfo_panel.addSlider(this.synth, "lfo_intensity", 1, 100, 1);
+    this.lfo_panel.addSlider(this.engine, "lfo_rate", 1, 20, 7);
+    this.lfo_panel.addSlider(this.engine, "lfo_intensity", 1, 100, 1);
 
     this.filter_panel = new Panel(this.p5, "Filter");
-    this.filter_panel.addSlider(this.synth, "filter_cutoff", 20, 20000, 8000);
-    this.filter_panel.addSlider(this.synth, "filter_peak", 1, 10, 6);
+    this.filter_panel.addSlider(this.engine, "filter_cutoff", 20, 20000, 8000);
+    this.filter_panel.addSlider(this.engine, "filter_peak", 1, 10, 6);
 
     this.amp_panel = new Panel(this.p5, "Volume");
-    this.amp_panel.addSlider(this.synth, "amp_gain", 0, 100, 40);
+    this.amp_panel.addSlider(this.engine, "amp_gain", 0, 100, 40);
 
     this.columns = [];
     this.columns.push([this.amp_panel]);
     this.columns.push([this.adsr_panel]);
     this.columns.push([this.filter_panel, this.lfo_panel]);
 
-    this.pianoRoll = new PianoRoll(this.p5);
+    this.pianoRoll = new PianoRoll(this.p5, this.engine);
+    this.pianoWidth = 0;
+    this.pianoHeight = 0;
+    this.pianoX = 0;
+    this.pianoY = 0;
 
     this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
     this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
@@ -354,7 +401,7 @@ export class PunkSynth {
   ScheduleStep(step_number, time) {
     let melody = this.melodies[this.mx];
     if (melody[step_number]) {
-      this.synth.NoteOn(melody[step_number], time);
+      this.engine.noteOn(melody[step_number], time);
     }
   }
 
@@ -379,6 +426,7 @@ export class PunkSynth {
   }
 
   mousePressed() {
+    this.pianoRoll.mousePressed(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
     // if (CheckPointInsideArea(this.p5.mouseX,
     //     this.p5.mouseY,
     //     this.start_button_x,
@@ -400,13 +448,15 @@ export class PunkSynth {
   }
 
   mouseReleased() {
+    this.pianoRoll.mouseReleased(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
+    // if (CheckPointInsideArea(this.p5.mouseX,
     // this.panels.forEach((p) => {
     //   p.mouseReleased(this.p5);
     // });
   }
 
   Lazer() {
-    this.synth.Lazer();
+    this.engine.Lazer();
   }
 
   Display() {
@@ -454,11 +504,11 @@ export class PunkSynth {
     this.p5.rect(bottom_x, bottom_y, bottom_width, bottom_height, 10);
 
     // bottom section piano roll
-    let piano_width = bottom_width - SYNTH_MARGIN * 2;
-    let piano_height = bottom_height - SYNTH_MARGIN * 2;
-    let px = bottom_x + SYNTH_MARGIN;
-    let py = bottom_y + SYNTH_MARGIN;
-    this.pianoRoll.draw(px, py, piano_width, piano_height);
+    this.pianoWidth = bottom_width - SYNTH_MARGIN * 2;
+    this.pianoHeight = bottom_height - SYNTH_MARGIN * 2;
+    this.pianoX = bottom_x + SYNTH_MARGIN;
+    this.pianoY = bottom_y + SYNTH_MARGIN;
+    this.pianoRoll.draw(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
 
   }
 }
