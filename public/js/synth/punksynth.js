@@ -136,14 +136,14 @@ class SynthEngine {
     }
   }
 
-  noteOn(freq, time) {
+  noteOn(midi_num, time) {
     //console.log("NOTON", time);
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
       context.resume();
     }
 
-    let osc = this.createNote(freq);
+    let osc = this.createNote(this.p5.midiToFreq(midi_num));
     osc.start(time);
     osc.stop(time + 0.1);
     //osc.disconnect(time + 0.7);
@@ -209,16 +209,34 @@ class Slider {
   }
 }
 
+class Button {
+  constructor(p5, callback, text) {
+    this.button = p5.createButton(text);
+    this.button.mousePressed(callback);
+  }
+
+  draw(p5, x, y, width) {
+    this.button.position(x, y);
+  }
+
+}
+
+
 class Panel {
   constructor(p5, name) {
     this.p5 = p5;
     this.name = name;
     this.sliders = [];
     this.margin = 7;
+    this.buttons = [];
   }
 
   addSlider(control_target, control_param, control_min, control_max, val) {
     this.sliders.push(new Slider(this.p5, control_target, control_param, control_min, control_max, val));
+  }
+
+  addButton(callback, text) {
+    this.buttons.push(new Button(this.p5, callback, text));
   }
 
   draw(p5, x, y, slider_width, max_slider_height) {
@@ -238,15 +256,21 @@ class Panel {
     for (let i = 0; i < this.sliders.length; i++) {
       this.sliders[i].draw(p5, px, py + i * min_slider_size, width);
     }
+
+    py += this.sliders.length - 1 * min_slider_size;
+    for (let i = 0; i < this.buttons.length; i++) {
+      this.buttons[i].draw(p5, px, py + i * min_slider_size);
+    }
   }
 }
 
 class PianoRoll {
-  constructor(p5, engine) {
+  constructor(p5, engine, scheduler) {
     this.p5 = p5;
     this.engine = engine;
+    this.scheduler = scheduler;
     this.numKeys = 13;
-    this.octave = 4; // https://computermusicresource.com/midikeys.html
+    this.octave = 3; // https://computermusicresource.com/midikeys.html
     this.activeNotes = [];
     this.oscz = [];
     //this.keyWidth = 70;
@@ -256,13 +280,11 @@ class PianoRoll {
 
   draw(x, y, width, height) {
     this.p5.rect(x, y, width, height);
-
-    this.p5.fill(255);
-    this.p5.rect(x, y, this.keyWidth, height);
     this.p5.stroke(0);
     this.p5.noFill();
     const blackKeys = [1, 3, 6, 8, 10];
 
+    let currentStep = this.scheduler.currentStep - 1;
     let cellWidth = width / 17;
     let cellHeight = height / this.numKeys;
 
@@ -283,6 +305,8 @@ class PianoRoll {
     let gridWidth = width - cellWidth;
     let gridHeight = height;
     for (let i = 0; i < this.numKeys; i++) {
+      let midiKeyNum = this.numKeys - 1 - i;
+      let midiVal = 12 + this.octave * 12 + midiKeyNum;
       let fillCol = 200;
       if (blackKeys.includes(this.numKeys - 1 - i)) {
         fillCol = 180;
@@ -291,8 +315,15 @@ class PianoRoll {
       this.p5.noStroke();
       this.p5.rect(gridX, y + i * cellHeight, gridWidth, cellHeight);
       this.p5.stroke(0);
-      this.p5.noFill();
+      let melody = this.scheduler.melodies[this.scheduler.mx];
       for (let j = 0; j < 16; j++) {
+        this.p5.noFill();
+        if (j === currentStep && this.scheduler.playing) {
+          this.p5.fill(240);
+        }
+        if (melody[j] === midiVal) {
+          this.p5.fill(255, 0, 0);
+        }
         this.p5.rect(gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight);
       }
     }
@@ -310,9 +341,6 @@ class PianoRoll {
         let freq = this.p5.midiToFreq(midiVal);
         console.log("KEY DOWN! ", midiKeyNum, " midi val:", midiVal, " freq:", freq);
         this.activeNotes.push(midiVal);
-        //this.engine.
-        //freq = midiToFreq(midiVal);
-        //this.engine.noteOn(melody[step_number], time);
         let osc = this.engine.createNote(freq);
         osc.start(0);
         this.oscz.push(osc);
@@ -324,6 +352,7 @@ class PianoRoll {
 
   mouseReleased() {
     this.activeNotes.forEach((n) => {
+      // TODO - match note to switch off.
       console.log("NOTE OFF FOR ", n);
     });
     this.activeNotes.length = 0;
@@ -346,6 +375,7 @@ export class PunkSynth {
   constructor(p5) {
     this.p5 = p5;
     this.engine = new SynthEngine(p5);
+    this.playing = false;
 
     this.adsr_panel = new Panel(this.p5, "ADSR");
     this.adsr_panel.addSlider(this.engine, "amp_attack", 1, 500, 10);
@@ -363,37 +393,38 @@ export class PunkSynth {
 
     this.amp_panel = new Panel(this.p5, "Volume");
     this.amp_panel.addSlider(this.engine, "amp_gain", 0, 100, 40);
+    this.amp_panel.addButton(this.StartLoop.bind(this), "start");
+    this.amp_panel.addButton(this.StopLoop.bind(this), "stop");
 
     this.columns = [];
     this.columns.push([this.amp_panel]);
     this.columns.push([this.adsr_panel]);
     this.columns.push([this.filter_panel, this.lfo_panel]);
 
-    this.pianoRoll = new PianoRoll(this.p5, this.engine);
+    this.pianoRoll = new PianoRoll(this.p5, this.engine, this);
     this.pianoWidth = 0;
     this.pianoHeight = 0;
     this.pianoX = 0;
     this.pianoY = 0;
 
-    this.melody1 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 0, 174.614, 138.591, 174.614, 0, 164.814, 130.813, 164.814, 0, 123.471];
-    this.melody2 = [138.591, 146.832, 164.814, 184.997, 146.832, 184.997, 246.942, 220, 184.997, 146.832, 184.997, 220, 0, 0, 0, 123.471];
-    this.melodies = [this.melody1, this.melody2];
+    this.melody1 = [56, 60, 49, 55, 0, 0, 49, 52, 0, 0, 60, 0, 0, 0, 0, 0];
+    this.melody2 = [];
+    this.melodies = [this.melody1];
     this.mx = 0;
 
-    this.tempo = 300.0;
-    this.current_step = 0;
-    this.next_step_time = 0.0;
-    this.notes_in_the_queue = [];
+    this.tempo = 210.0;
+    this.currentStep = 0;
+    this.nextStepTime = 0.0;
 
     this.timer_id = 0;
   }
 
   NextStep() {
     const seconds_per_beat = 60.0 / this.tempo;
-    this.next_step_time += seconds_per_beat;
+    this.nextStepTime += seconds_per_beat;
     let melody = this.melodies[this.mx];
-    this.current_step = (this.current_step + 1) % melody.length;
-    if (this.current_step === 0) {
+    this.currentStep = (this.currentStep + 1) % melody.length;
+    if (this.currentStep === 0) {
       this.mx = (this.mx + 1) % this.melodies.length;
     }
   }
@@ -407,52 +438,36 @@ export class PunkSynth {
 
   Scheduler() {
     let context = this.p5.getAudioContext();
-    while (this.next_step_time < context.currentTime + SCHEDULE_AHEAD_TIME) {
-      this.ScheduleStep(this.current_step, this.next_step_time);
+    while (this.nextStepTime < context.currentTime + SCHEDULE_AHEAD_TIME) {
+      this.ScheduleStep(this.currentStep, this.nextStepTime);
       this.NextStep();
     }
     this.time_id = setTimeout(this.Scheduler.bind(this), LOOKAHEAD);
   }
 
   StartLoop() {
-    let context = this.p5.getAudioContext();
-    this.current_step = 0;
-    this.next_step_time = context.currentTime;
-    this.Scheduler();
+    if (!this.playing) {
+      let context = this.p5.getAudioContext();
+      this.currentStep = 0;
+      this.nextStepTime = context.currentTime;
+      this.Scheduler();
+      this.playing = true;
+    }
   }
 
   StopLoop() {
-    clearTimeout(this.time_id);
+    if (this.playing) {
+      clearTimeout(this.time_id);
+      this.playing = false;
+    }
   }
 
   mousePressed() {
     this.pianoRoll.mousePressed(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
-    // if (CheckPointInsideArea(this.p5.mouseX,
-    //     this.p5.mouseY,
-    //     this.start_button_x,
-    //     this.start_button_y,
-    //     this.start_button_width,
-    //     this.start_button_height)) {
-    //   this.StartLoop();
-    // } else if (CheckPointInsideArea(this.p5.mouseX,
-    //     this.p5.mouseY,
-    //     this.stop_button_x,
-    //     this.stop_button_y,
-    //     this.stop_button_width,
-    //     this.stop_button_height)) {
-    //   this.StopLoop();
-    // }
-    // this.panels.forEach((p) => {
-    //   p.mousePressed(this.p5);
-    // });
   }
 
   mouseReleased() {
     this.pianoRoll.mouseReleased(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
-    // if (CheckPointInsideArea(this.p5.mouseX,
-    // this.panels.forEach((p) => {
-    //   p.mouseReleased(this.p5);
-    // });
   }
 
   Lazer() {
@@ -478,7 +493,6 @@ export class PunkSynth {
     this.p5.stroke(SYNTH_ALT_COLOR);
     this.p5.strokeWeight(1);
     this.p5.rect(top_x, top_y, top_width, top_height, 20);
-
 
     // top section sliders
     let all_cols_width = top_width - SYNTH_MARGIN * 2;
@@ -509,6 +523,7 @@ export class PunkSynth {
     this.pianoX = bottom_x + SYNTH_MARGIN;
     this.pianoY = bottom_y + SYNTH_MARGIN;
     this.pianoRoll.draw(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
+
 
   }
 }
