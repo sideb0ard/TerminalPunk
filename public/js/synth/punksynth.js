@@ -333,20 +333,36 @@ class PianoRoll {
     let cellWidth = width / 17;
     let cellHeight = height / this.numKeys;
 
-    // KEY DOWN
+    let gridX = x + cellWidth;
+    let gridWidth = width - cellWidth;
+    let gridHeight = height;
+
     for (let i = 0; i < this.numKeys; i++) {
+      // PIANO KEYS
       if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, x, y + i * cellHeight, cellWidth, cellHeight)) {
         let midiKeyNum = this.numKeys - 1 - i;
         let midiVal = 12 + this.octave * 12 + midiKeyNum;
         let freq = this.p5.midiToFreq(midiVal);
-        console.log("KEY DOWN! ", midiKeyNum, " midi val:", midiVal, " freq:", freq);
+        //console.log("GRID CLICK! ", midiKeyNum, " midi val:", midiVal);
         this.activeNotes.push(midiVal);
         let osc = this.engine.createNote(freq);
         osc.start(0);
         this.oscz.push(osc);
       }
 
+      // GRID
+      for (let j = 0; j < 16; j++) {
 
+        if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight)) {
+          //if (melody[j] === midiVal) {
+          //  this.p5.fill(255, 0, 0);
+          //}
+          //this.p5.rect(gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight);
+          let midiKeyNum = this.numKeys - 1 - i;
+          let midiVal = 12 + this.octave * 12 + midiKeyNum;
+          console.log("GRID CLICK! Step:", j, "MIDIKEY:", midiKeyNum, " midi val:", midiVal);
+        }
+      }
     }
   }
 
