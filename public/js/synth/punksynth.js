@@ -284,7 +284,13 @@ class PianoRoll {
     this.p5.noFill();
     const blackKeys = [1, 3, 6, 8, 10];
 
+    // chicanery!
     let currentStep = this.scheduler.currentStep - 1;
+    if (currentStep === -1) {
+      currentStep = 15;
+    }
+    // end chicanery!
+
     let cellWidth = width / 17;
     let cellHeight = height / this.numKeys;
 
@@ -321,9 +327,11 @@ class PianoRoll {
         if (j === currentStep && this.scheduler.playing) {
           this.p5.fill(240);
         }
-        if (melody[j] === midiVal) {
-          this.p5.fill(255, 0, 0);
-        }
+        melody[j].forEach((n) => {
+          if (n === midiVal) {
+            this.p5.fill(255, 0, 0);
+          }
+        });
         this.p5.rect(gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight);
       }
     }
@@ -361,6 +369,15 @@ class PianoRoll {
           let midiKeyNum = this.numKeys - 1 - i;
           let midiVal = 12 + this.octave * 12 + midiKeyNum;
           console.log("GRID CLICK! Step:", j, "MIDIKEY:", midiKeyNum, " midi val:", midiVal);
+          let idx = this.scheduler.melodies[this.scheduler.mx][j].indexOf(midiVal);
+          console.log("IDX:", idx, "VALS:", this.scheduler.melodies[this.scheduler.mx][j]);
+          if (idx > -1) {
+            console.log("ALREADU EXISTS - LETS REMOVE:", midiVal);
+            this.scheduler.melodies[this.scheduler.mx][j].splice(idx, 1);
+          } else {
+            console.log("NO EXISTS - LETS ADD:", midiVal);
+            this.scheduler.melodies[this.scheduler.mx][j].push(midiVal);
+          }
         }
       }
     }
@@ -423,8 +440,42 @@ export class PunkSynth {
     this.pianoX = 0;
     this.pianoY = 0;
 
-    this.melody1 = [56, 60, 49, 55, 0, 0, 49, 52, 0, 0, 60, 0, 0, 0, 0, 0];
-    this.melody2 = [];
+    this.melody1 = [
+      [56],
+      [60],
+      [49],
+      [55],
+      [0],
+      [0],
+      [49],
+      [52],
+      [0],
+      [0],
+      [60],
+      [0],
+      [0],
+      [0],
+      [0],
+      [0]
+    ];
+    this.melody2 = [
+      [56],
+      [60],
+      [49],
+      [55],
+      [0],
+      [0],
+      [49],
+      [52],
+      [0],
+      [0],
+      [60],
+      [0],
+      [0],
+      [0],
+      [0],
+      [0]
+    ];
     this.melodies = [this.melody1];
     this.mx = 0;
 
@@ -448,7 +499,11 @@ export class PunkSynth {
   ScheduleStep(step_number, time) {
     let melody = this.melodies[this.mx];
     if (melody[step_number]) {
-      this.engine.noteOn(melody[step_number], time);
+      melody[step_number].forEach((n) => {
+        if (n !== 0) {
+          this.engine.noteOn(n, time);
+        }
+      })
     }
   }
 
