@@ -286,11 +286,19 @@ class Terminal {
         this.the_library.Reset();
       }
     } else if (Environment.mode == Modes.DSP) {
+      console.log(key);
       if (key == 'Escape') {
         Environment.mode = Modes.COMMAND;
         Environment.pwd = "/";
         this.punk_synth.StopLoop();
+        this.punk_synth.hide();
         this.music_playing = false;
+      } else if (key === ' ') {
+        if (this.punk_synth.is_playing) {
+          this.punk_synth.StopLoop();
+        } else {
+          this.punk_synth.StartLoop();
+        }
       }
     }
   }

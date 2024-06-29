@@ -30,17 +30,20 @@ function CheckPointInsideArea(px, py, area_x, area_y, area_width, area_height) {
   return false;
 }
 
+const MAX_ADSR_VAL = 2; // seconds
+
 class SynthEngine {
   constructor(p5) {
     console.log("YO PYUNK SYNTH!", p5);
     this.p5 = p5;
 
-    this.amp_gain = 0.3;
-    this.amp_sustain = 0.7;
-    this.amp_sustain_time = 0.5;
-    this.amp_attack = 0.2;
-    this.amp_decay = 0.2;
-    this.amp_release = 0.2;
+    this.gain = 0.3;
+
+    this.attack = 0.2;
+    this.decay = 0.2;
+    this.sustain = 1;
+    this.sustain_time = 0.5;
+    this.release = 0.2;
 
     this.lfo_rate = 3;
     this.lfo_intensity = 1;
@@ -48,134 +51,72 @@ class SynthEngine {
     this.filter_cutoff = 300;
     this.filter_peak = 1;
 
-    // https://github.com/pendragon-andyh/WebAudio-PulseOscillator/blob/master/example-synth.html#L207
     const context = this.p5.getAudioContext();
-    context.createPulseOscillator = function() {
+    this.gainNode = context.createGain();
+    this.gainNode.gain.value = this.gain;
+    this.gainNode.connect(context.destination);
 
-      let node = this.createOscillator();
-      node.type = "sawtooth";
-
-      let pulse_shaper = context.createWaveShaper();
-      pulse_shaper.curve = pulseCurve;
-      node.connect(pulse_shaper);
-
-      let width_gain = context.createGain();
-      width_gain.gain.value = 0;
-      node.width = width_gain.gain;
-      width_gain.connect(pulse_shaper);
-
-      let constant_one_shaper = this.createWaveShaper();
-      constant_one_shaper.curve = constantOneCurve;
-      node.connect(constant_one_shaper);
-      constant_one_shaper.connect(width_gain);
-
-      node.connect = function() {
-        pulse_shaper.connect.apply(pulse_shaper, arguments);
-        return node;
-      }
-
-      node.disconnect = function() {
-        pulse_shaper.disconnect.apply(pulse_shaper, arguments);
-        return node;
-      }
-
-      return node;
-    }
-
-    this.pulse_time = 0.5;
     console.log("PUNK SYNTH CREATED!", this.p5);
   }
 
   set(param, value) {
     console.log("YO SET:", param, value, this);
-    if (this[param]) {
+    if (this.hasOwnProperty(param)) {
       this[param] = value;
     }
   }
 
-  createNote(freq) {
-    //console.log("CREATENOtE");
-    const context = this.p5.getAudioContext();
-    const amp = context.createGain();
-    amp.gain.value = 0;
-    amp.connect(context.destination);
-
-    const osc = context.createPulseOscillator();
-    osc.frequency.value = freq;
-    osc.connect(amp);
-
-    //console.log("OSC:", osc);
-
-    const amp_gain = this.amp_gain;
-    const amp_attack = this.amp_attack;
-    const amp_decay = this.amp_decay;
-    const amp_release = this.amp_release;
-    let amp_sustain_time = this.amp_sustain_time;
-    const amp_sustain = this.amp_sustain;
-
-    return {
-      start: function(startTime) {
-        //console.log("NOTEON THIS", this);
-        startTime = startTime || context.currentTime;
-        amp.gain.linearRampToValueAtTime(amp_gain, startTime + amp_attack);
-        amp.gain.linearRampToValueAtTime(amp_gain * amp_sustain, amp_decay);
-        amp.gain.linearRampToValueAtTime(amp_gain * amp_sustain, amp_sustain_time);
-        osc.start(startTime);
-        //lfo.start(startTime);
-      },
-      stop: function(releaseTime) {
-        //console.log("NOTEOFFFF");
-        releaseTime = releaseTime || context.currentTime;
-
-        let stopTime = Math.max(releaseTime, amp_sustain_time) + amp_release;
-        amp.gain.linearRampToValueAtTime(0, stopTime);
-        osc.stop(stopTime);
-        //lfo.stop(stopTime);
-
-      }
-    }
-  }
-
   noteOn(midi_num, time) {
-    //console.log("NOTON", time);
+    console.log("NOTE ON:", midi_num, time);
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
       context.resume();
     }
 
-    let osc = this.createNote(this.p5.midiToFreq(midi_num));
-    osc.start(time);
-    osc.stop(time + 0.1);
-    //osc.disconnect(time + 0.7);
+    const now = time || context.currentTime;
+    this.gainNode.gain.cancelScheduledValues(now);
 
+    const osc = context.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = this.p5.midiToFreq(midi_num);
+    osc.connect(this.gainNode);
+
+    // ATTACK -> DECAY -> SUSTAIN
+    const atkDuration = this.attack * MAX_ADSR_VAL;
+    const atkEndTime = now + atkDuration;
+    const decayDuration = this.decay * MAX_ADSR_VAL;
+
+    this.gainNode.gain.setValueAtTime(0, now);
+    this.gainNode.gain.linearRampToValueAtTime(1, atkEndTime);
+
+    this.gainNode.gain.setValueAtTime(this.sustain, atkEndTime, decayDuration);
+
+    osc.start();
   }
 
-  noteOff(freq, time) {}
+  noteOff(time) {
+    const context = this.p5.getAudioContext();
+    const now = time || context.currentTime;
+    this.gainNode.gain.cancelScheduledValues(now);
+
+    // RELEASE
+    const relDuration = this.release * MAX_ADSR_VAL;
+    const relEndTime = now + relDuration;
+    this.gainNode.gain.linearRampToValueAtTime(0, relEndTime);
+    // osc.stop(relEndTime);
+
+  }
 
   Lazer() {
+    console.log("LAZZZER");
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
       context.resume();
     }
-    let time = context.currentTime;
 
-    const osc = new OscillatorNode(context, {
-      type: "square",
-      frequency: 100,
-    });
-
-    const att_rel = new GainNode(context);
-    att_rel.gain.cancelScheduledValues(time);
-    att_rel.gain.setValueAtTime(0, time);
-    att_rel.gain.linearRampToValueAtTime(0.5, time + 0.4);
-    att_rel.gain.linearRampToValueAtTime(0, time + this.pulse_time - 0.4);
-
-    osc.connect(att_rel);
-    att_rel.connect(context.destination);
-    osc.frequency.setTargetAtTime(70, time, time + 0.3);
-    osc.start(time);
-    osc.stop(time + this.pulse_time);
-
+    for (let i = 0; i < 13; i++) {
+      this.noteOn(49 + i);
+    }
   }
 }
 /////////// END SYNTH ENGINE /////////////////////////////////////////////
@@ -205,7 +146,14 @@ class Slider {
       let new_val = this.min_val + (current_pct / 100 * range);
       console.log("NEW VAL:", new_val);
       this.control_pct = current_pct;
+      this.control_target.set(this.control_param, new_val);
     }
+  }
+  show() {
+    this.slider.show();
+  }
+  hide() {
+    this.slider.hide();
   }
 }
 
@@ -217,6 +165,12 @@ class Button {
 
   draw(p5, x, y, width) {
     this.button.position(x, y);
+  }
+  show() {
+    this.button.show();
+  }
+  hide() {
+    this.button.hide();
   }
 
 }
@@ -237,6 +191,24 @@ class Panel {
 
   addButton(callback, text) {
     this.buttons.push(new Button(this.p5, callback, text));
+  }
+
+  hide() {
+    this.buttons.forEach((b) => {
+      b.hide();
+    });
+    this.sliders.forEach((s) => {
+      s.hide();
+    });
+  }
+
+  show() {
+    this.buttons.forEach((b) => {
+      b.show();
+    });
+    this.sliders.forEach((s) => {
+      s.show();
+    });
   }
 
   draw(p5, x, y, slider_width, max_slider_height) {
@@ -271,8 +243,6 @@ class PianoRoll {
     this.scheduler = scheduler;
     this.numKeys = 13;
     this.octave = 3; // https://computermusicresource.com/midikeys.html
-    this.activeNotes = [];
-    this.oscz = [];
     //this.keyWidth = 70;
     //this.rowColor = new p5.color(140);
     //this.blackRowColor = new p5.color(128);
@@ -324,7 +294,7 @@ class PianoRoll {
       let melody = this.scheduler.melodies[this.scheduler.mx];
       for (let j = 0; j < 16; j++) {
         this.p5.noFill();
-        if (j === currentStep && this.scheduler.playing) {
+        if (j === currentStep && this.scheduler.is_playing) {
           this.p5.fill(240);
         }
         melody[j].forEach((n) => {
@@ -350,32 +320,18 @@ class PianoRoll {
       if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, x, y + i * cellHeight, cellWidth, cellHeight)) {
         let midiKeyNum = this.numKeys - 1 - i;
         let midiVal = 12 + this.octave * 12 + midiKeyNum;
-        let freq = this.p5.midiToFreq(midiVal);
-        //console.log("GRID CLICK! ", midiKeyNum, " midi val:", midiVal);
-        this.activeNotes.push(midiVal);
-        let osc = this.engine.createNote(freq);
-        osc.start(0);
-        this.oscz.push(osc);
+        this.engine.noteOn(midiVal);
       }
 
       // GRID
       for (let j = 0; j < 16; j++) {
-
         if (CheckPointInsideArea(this.p5.mouseX, this.p5.mouseY, gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight)) {
-          //if (melody[j] === midiVal) {
-          //  this.p5.fill(255, 0, 0);
-          //}
-          //this.p5.rect(gridX + j * cellWidth, y + i * cellHeight, cellWidth, cellHeight);
           let midiKeyNum = this.numKeys - 1 - i;
           let midiVal = 12 + this.octave * 12 + midiKeyNum;
-          console.log("GRID CLICK! Step:", j, "MIDIKEY:", midiKeyNum, " midi val:", midiVal);
           let idx = this.scheduler.melodies[this.scheduler.mx][j].indexOf(midiVal);
-          console.log("IDX:", idx, "VALS:", this.scheduler.melodies[this.scheduler.mx][j]);
           if (idx > -1) {
-            console.log("ALREADU EXISTS - LETS REMOVE:", midiVal);
             this.scheduler.melodies[this.scheduler.mx][j].splice(idx, 1);
           } else {
-            console.log("NO EXISTS - LETS ADD:", midiVal);
             this.scheduler.melodies[this.scheduler.mx][j].push(midiVal);
           }
         }
@@ -384,15 +340,7 @@ class PianoRoll {
   }
 
   mouseReleased() {
-    this.activeNotes.forEach((n) => {
-      // TODO - match note to switch off.
-      console.log("NOTE OFF FOR ", n);
-    });
-    this.activeNotes.length = 0;
-    this.oscz.forEach((o) => {
-      o.stop(0);
-    });
-    this.oscz.length = 0;
+    this.engine.noteOff();
   }
 }
 
@@ -408,24 +356,24 @@ export class PunkSynth {
   constructor(p5) {
     this.p5 = p5;
     this.engine = new SynthEngine(p5);
-    this.playing = false;
+    this.is_playing = false;
 
     this.adsr_panel = new Panel(this.p5, "ADSR");
-    this.adsr_panel.addSlider(this.engine, "amp_attack", 1, 500, 10);
-    this.adsr_panel.addSlider(this.engine, "amp_decay", 1, 500, 10);
-    this.adsr_panel.addSlider(this.engine, "amp_sustain", 1, 500, 10);
-    this.adsr_panel.addSlider(this.engine, "amp_release", 1, 500, 10);
+    this.adsr_panel.addSlider(this.engine, "attack", 0.1, 5, 1);
+    this.adsr_panel.addSlider(this.engine, "decay", 0.1, 5, 1);
+    this.adsr_panel.addSlider(this.engine, "sustain", 0.1, 5, 1);
+    this.adsr_panel.addSlider(this.engine, "release", 0.1, 5, 1);
 
     this.lfo_panel = new Panel(this.p5, "LFO");
     this.lfo_panel.addSlider(this.engine, "lfo_rate", 1, 20, 7);
     this.lfo_panel.addSlider(this.engine, "lfo_intensity", 1, 100, 1);
 
     this.filter_panel = new Panel(this.p5, "Filter");
-    this.filter_panel.addSlider(this.engine, "filter_cutoff", 20, 20000, 8000);
-    this.filter_panel.addSlider(this.engine, "filter_peak", 1, 10, 6);
+    this.filter_panel.addSlider(this.engine, "filter_cutoff", 20, 20000, 70);
+    this.filter_panel.addSlider(this.engine, "filter_peak", 1, 10, 50);
 
     this.amp_panel = new Panel(this.p5, "Volume");
-    this.amp_panel.addSlider(this.engine, "amp_gain", 0, 100, 40);
+    this.amp_panel.addSlider(this.engine, "gain", 0, 100, 40);
     this.amp_panel.addButton(this.StartLoop.bind(this), "start");
     this.amp_panel.addButton(this.StopLoop.bind(this), "stop");
 
@@ -441,21 +389,21 @@ export class PunkSynth {
     this.pianoY = 0;
 
     this.melody1 = [
-      [56],
-      [60],
-      [49],
-      [55],
+      [52],
+      [50],
       [0],
+      [59],
       [0],
-      [49],
+      [57],
+      [0],
+      [50, 57],
+      [0],
       [52],
       [0],
+      [50, 57],
+      [50],
       [0],
-      [60],
-      [0],
-      [0],
-      [0],
-      [0],
+      [55, 50],
       [0]
     ];
     this.melody2 = [
@@ -479,11 +427,28 @@ export class PunkSynth {
     this.melodies = [this.melody1];
     this.mx = 0;
 
-    this.tempo = 210.0;
+    this.tempo = 310.0;
     this.currentStep = 0;
     this.nextStepTime = 0.0;
 
     this.timer_id = 0;
+  }
+
+  hide() {
+    console.log("HIDDDE!");
+    this.columns.forEach((c) => {
+      c.forEach((p) => {
+        p.hide();
+      });
+    });
+  }
+
+  show() {
+    this.columns.forEach((c) => {
+      c.forEach((p) => {
+        p.show();
+      });
+    });
   }
 
   NextStep() {
@@ -502,6 +467,7 @@ export class PunkSynth {
       melody[step_number].forEach((n) => {
         if (n !== 0) {
           this.engine.noteOn(n, time);
+          this.engine.noteOff(time + 1);
         }
       })
     }
@@ -517,19 +483,19 @@ export class PunkSynth {
   }
 
   StartLoop() {
-    if (!this.playing) {
+    if (!this.is_playing) {
       let context = this.p5.getAudioContext();
       this.currentStep = 0;
       this.nextStepTime = context.currentTime;
       this.Scheduler();
-      this.playing = true;
+      this.is_playing = true;
     }
   }
 
   StopLoop() {
-    if (this.playing) {
+    if (this.is_playing) {
       clearTimeout(this.time_id);
-      this.playing = false;
+      this.is_playing = false;
     }
   }
 
@@ -595,6 +561,6 @@ export class PunkSynth {
     this.pianoY = bottom_y + SYNTH_MARGIN;
     this.pianoRoll.draw(this.pianoX, this.pianoY, this.pianoWidth, this.pianoHeight);
 
-
+    this.show();
   }
 }
