@@ -37,8 +37,6 @@ class SynthEngine {
     console.log("YO PYUNK SYNTH!", p5);
     this.p5 = p5;
 
-    this.gain = 0.3;
-
     this.attack = 0.2;
     this.decay = 0.2;
     this.sustain = 1;
@@ -52,71 +50,102 @@ class SynthEngine {
     this.filter_peak = 1;
 
     const context = this.p5.getAudioContext();
-    this.gainNode = context.createGain();
-    this.gainNode.gain.value = this.gain;
-    this.gainNode.connect(context.destination);
+
+    this.vco = context.createOscillator();
+    this.lfo = context.createOscillator();
+    this.lfoGain = context.createGain();
+    this.vcf = context.createBiquadFilter();
+    this.output = context.createGain();
+
+    this.vco.connect(this.vcf);
+    this.vcf.connect(this.output);
+
+    this.lfo.connect(this.lfoGain);
+    this.lfoGain.connect(this.vcf.frequency);
+    this.lfo.frequency.value = 30;
+
+    this.output.gain.value = 0;
+    this.vco.type = 'sawtooth';
+    this.lfo.type = 'sawtooth';
+
+    this.vco.start();
+    this.lfo.start();
+
+    this.volume = context.createGain();
+
+    this.output.connect(this.volume);
+    this.volume.connect(context.destination);
 
     console.log("PUNK SYNTH CREATED!", this.p5);
   }
 
   set(param, value) {
     console.log("YO SET:", param, value, this);
-    if (this.hasOwnProperty(param)) {
-      this[param] = value;
+    if (param === "volume") {
+      this.volume.gain.value = value;
+    } else if (param === "attack") {
+      this.attack = value;
+    } else if (param === "decay") {
+      this.decay = value;
+    } else if (param === "sustain") {
+      this.sustain = value;
+    } else if (param === "release") {
+      this.release = value;
     }
   }
 
   noteOn(midi_num, time) {
-    console.log("NOTE ON:", midi_num, time);
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
       context.resume();
     }
 
     const now = time || context.currentTime;
-    this.gainNode.gain.cancelScheduledValues(now);
+    this.output.gain.cancelScheduledValues(now);
 
-    const osc = context.createOscillator();
-    osc.type = 'sawtooth';
-    osc.frequency.value = this.p5.midiToFreq(midi_num);
-    osc.connect(this.gainNode);
+    this.vco.frequency.setValueAtTime(this.p5.midiToFreq(midi_num), now);
 
     // ATTACK -> DECAY -> SUSTAIN
     const atkDuration = this.attack * MAX_ADSR_VAL;
     const atkEndTime = now + atkDuration;
     const decayDuration = this.decay * MAX_ADSR_VAL;
 
-    this.gainNode.gain.setValueAtTime(0, now);
-    this.gainNode.gain.linearRampToValueAtTime(1, atkEndTime);
-
-    this.gainNode.gain.setValueAtTime(this.sustain, atkEndTime, decayDuration);
-
-    osc.start();
+    this.output.gain.linearRampToValueAtTime(1, atkEndTime);
+    this.output.gain.exponentialRampToValueAtTime(this.sustain, atkEndTime + decayDuration);
   }
 
   noteOff(time) {
     const context = this.p5.getAudioContext();
     const now = time || context.currentTime;
-    this.gainNode.gain.cancelScheduledValues(now);
+    this.output.gain.cancelScheduledValues(now);
+    this.output.gain.setValueAtTime(this.output.gain.value, now);
 
     // RELEASE
     const relDuration = this.release * MAX_ADSR_VAL;
     const relEndTime = now + relDuration;
-    this.gainNode.gain.linearRampToValueAtTime(0, relEndTime);
-    // osc.stop(relEndTime);
+    this.output.gain.linearRampToValueAtTime(0, relEndTime);
 
   }
 
-  Lazer() {
+  Lazer(time) {
     console.log("LAZZZER");
     const context = this.p5.getAudioContext();
     if (context.state === "suspended") {
       context.resume();
     }
+    const now = time || context.currentTime;
 
-    for (let i = 0; i < 13; i++) {
-      this.noteOn(49 + i);
-    }
+    let osc = context.createOscillator();
+    osc.type = 'sine';
+    osc.frequency.value = 1900;
+    osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+
+    osc.connect(context.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.5);
+
+
   }
 }
 /////////// END SYNTH ENGINE /////////////////////////////////////////////
@@ -359,10 +388,10 @@ export class PunkSynth {
     this.is_playing = false;
 
     this.adsr_panel = new Panel(this.p5, "ADSR");
-    this.adsr_panel.addSlider(this.engine, "attack", 0.1, 5, 1);
-    this.adsr_panel.addSlider(this.engine, "decay", 0.1, 5, 1);
-    this.adsr_panel.addSlider(this.engine, "sustain", 0.1, 5, 1);
-    this.adsr_panel.addSlider(this.engine, "release", 0.1, 5, 1);
+    this.adsr_panel.addSlider(this.engine, "attack", 0.01, 1, 10);
+    this.adsr_panel.addSlider(this.engine, "decay", 0.01, 1, 10);
+    this.adsr_panel.addSlider(this.engine, "sustain", 0.01, 1, 100);
+    this.adsr_panel.addSlider(this.engine, "release", 0.01, 1, 10);
 
     this.lfo_panel = new Panel(this.p5, "LFO");
     this.lfo_panel.addSlider(this.engine, "lfo_rate", 1, 20, 7);
@@ -373,9 +402,9 @@ export class PunkSynth {
     this.filter_panel.addSlider(this.engine, "filter_peak", 1, 10, 50);
 
     this.amp_panel = new Panel(this.p5, "Volume");
-    this.amp_panel.addSlider(this.engine, "gain", 0, 100, 40);
-    this.amp_panel.addButton(this.StartLoop.bind(this), "start");
-    this.amp_panel.addButton(this.StopLoop.bind(this), "stop");
+    this.amp_panel.addSlider(this.engine, "volume", 0, 1, 40);
+    // this.amp_panel.addButton(this.StartLoop.bind(this), "start");
+    // this.amp_panel.addButton(this.StopLoop.bind(this), "stop");
 
     this.columns = [];
     this.columns.push([this.amp_panel]);
@@ -427,7 +456,7 @@ export class PunkSynth {
     this.melodies = [this.melody1];
     this.mx = 0;
 
-    this.tempo = 310.0;
+    this.tempo = 120.0;
     this.currentStep = 0;
     this.nextStepTime = 0.0;
 
@@ -452,8 +481,9 @@ export class PunkSynth {
   }
 
   NextStep() {
-    const seconds_per_beat = 60.0 / this.tempo;
+    const seconds_per_beat = 60.0 / this.tempo / 4;
     this.nextStepTime += seconds_per_beat;
+    console.log("NEXTSTEP TIME:", this.nextStepTime);
     let melody = this.melodies[this.mx];
     this.currentStep = (this.currentStep + 1) % melody.length;
     if (this.currentStep === 0) {
@@ -463,6 +493,7 @@ export class PunkSynth {
 
   ScheduleStep(step_number, time) {
     let melody = this.melodies[this.mx];
+    console.log("STEP NUM:", step_number);
     if (melody[step_number]) {
       melody[step_number].forEach((n) => {
         if (n !== 0) {
