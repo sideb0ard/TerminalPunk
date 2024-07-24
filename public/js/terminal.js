@@ -12,6 +12,10 @@ import {
 } from "./the_library/lib.js"
 
 import {
+  Waves,
+} from "./waves/waves.js"
+
+import {
   PunkSynth,
 } from "./synth/punksynth.js"
 
@@ -141,6 +145,7 @@ class Terminal {
     this.text_font = p.loadFont('fonts/zxspectrum7-nroz0.ttf');
 
     this.the_library = new TheLibrary(p, this.bot, this.punk_synth);
+    this.waves = new Waves(p, this.bot, this.punk_synth);
     this.cursor = new Cursor(p, p.color(0, 255, 0));
 
     if (navigator.maxTouchPoints > 1) {
@@ -180,6 +185,8 @@ class Terminal {
       this.the_library.GameLoop();
     } else if (Environment.mode == Modes.DSP) {
       this.punk_synth.Display();
+    } else if (Environment.mode == Modes.WAVES) {
+      this.waves.GameLoop();
     } else {
       this.CommandModeLoop();
     }
@@ -275,7 +282,7 @@ class Terminal {
         }
         lineBuffer = "";
       }
-    } else if (Environment.mode == Modes.THE_LIBRARY) {
+    } else if (Environment.mode == Modes.THE_LIBRARY || Environment.mode == Modes.WAVES) {
       if (key == 'Escape') {
         Environment.mode = Modes.COMMAND;
         Environment.pwd = "/";

@@ -31,6 +31,93 @@ function CheckPointInsideArea(px, py, area_x, area_y, area_width, area_height) {
 }
 
 const MAX_ADSR_VAL = 2; // seconds
+//
+
+class Envelope {
+  constructor() {
+    this.attack = 0.1;
+    this.decay = 0.1;
+    this.sustain = 1;
+    this.release = 0.1;
+  }
+}
+class Voice {
+  constructor(p5) {
+    this.p5 = p5;
+    const context = this.p5.getAudioContext();
+    if (context.state === "suspended") {
+      context.resume();
+    }
+    this.vco = context.createOscillator();
+    this.lfo = context.createOscillator();
+    this.lfoGain = context.createGain();
+    this.vcf = context.createBiquadFilter();
+    this.output = context.createGain();
+
+    this.vco.connect(this.vcf);
+    this.vcf.connect(this.output);
+
+    this.lfo.connect(this.lfoGain);
+    this.lfoGain.connect(this.vcf.frequency);
+    this.lfo.frequency.value = 30;
+
+    this.output.gain.value = 0;
+    this.vco.type = 'sine';
+    this.lfo.type = 'sine';
+
+    this.attack = 0.1;
+    this.decay = 0.1;
+    this.sustain = 1;
+    this.release = 0.1;
+
+    this.vco.start();
+    this.lfo.start();
+  }
+
+  setEnvelope(env) {
+    if (env.attack) this.attack = env.attack;
+    if (env.decay) this.decay = env.decay;
+    if (env.sustain) this.sustain = env.sustain;
+    if (env.release) this.release = env.release;
+  }
+
+  noteOn(midi_num, time) {
+    const context = this.p5.getAudioContext();
+    if (context.state === "suspended") {
+      context.resume();
+    }
+
+    const now = time || context.currentTime;
+    this.output.gain.cancelScheduledValues(now);
+
+    this.vco.frequency.setValueAtTime(this.p5.midiToFreq(midi_num), now);
+
+    // ATTACK -> DECAY -> SUSTAIN
+    const atkDuration = this.attack * MAX_ADSR_VAL;
+    const atkEndTime = now + atkDuration;
+    const decayDuration = this.decay * MAX_ADSR_VAL;
+
+    this.output.gain.linearRampToValueAtTime(1, atkEndTime);
+    this.output.gain.exponentialRampToValueAtTime(this.sustain, atkEndTime + decayDuration);
+  }
+
+  noteOff(time) {
+    const context = this.p5.getAudioContext();
+    const now = time || context.currentTime;
+    this.output.gain.cancelScheduledValues(now);
+    this.output.gain.setValueAtTime(this.output.gain.value, now);
+
+    // RELEASE
+    const relDuration = this.release * MAX_ADSR_VAL;
+    const relEndTime = now + relDuration;
+    this.output.gain.linearRampToValueAtTime(0, relEndTime);
+
+  }
+
+  connect(destination) {
+    this.output.connect(destination);
+  }
+}
 
 class SynthEngine {
   constructor(p5) {
@@ -135,15 +222,22 @@ class SynthEngine {
     }
     const now = time || context.currentTime;
 
+    let lazLen = now + 0.3;
+
     let osc = context.createOscillator();
     osc.type = 'sine';
     osc.frequency.value = 1900;
-    osc.frequency.exponentialRampToValueAtTime(200, now + 0.3);
+    osc.frequency.exponentialRampToValueAtTime(700, lazLen);
 
-    osc.connect(context.destination);
+    let vol = context.createGain();
+    osc.frequency.linearRampToValueAtTime(1, lazLen);
+    osc.frequency.linearRampToValueAtTime(0, lazLen + 0.1);
+
+    osc.connect(vol);
+    vol.connect(context.destination);
 
     osc.start(now);
-    osc.stop(now + 0.5);
+    osc.stop(lazLen + 0.1);
 
 
   }
@@ -201,7 +295,25 @@ class Button {
   hide() {
     this.button.hide();
   }
+}
 
+class Radio {
+  constructor(p5, control_target, param, options) {
+    this.radio = p5.createRadio();
+    this.radio.size(60);
+    options.forEach((o) => {
+      this.radio.option(o);
+    });
+  }
+  draw(p5, x, y, width) {
+    this.radio.position(x, y);
+  }
+  show() {
+    this.radio.show();
+  }
+  hide() {
+    this.radio.hide();
+  }
 }
 
 
@@ -209,13 +321,18 @@ class Panel {
   constructor(p5, name) {
     this.p5 = p5;
     this.name = name;
-    this.sliders = [];
     this.margin = 7;
+    this.sliders = [];
     this.buttons = [];
+    this.radios = [];
   }
 
   addSlider(control_target, control_param, control_min, control_max, val) {
     this.sliders.push(new Slider(this.p5, control_target, control_param, control_min, control_max, val));
+  }
+
+  addRadio(control_target, control_param, options) {
+    this.radios.push(new Radio(this.p5, control_target, control_param, options));
   }
 
   addButton(callback, text) {
@@ -229,6 +346,9 @@ class Panel {
     this.sliders.forEach((s) => {
       s.hide();
     });
+    this.radios.forEach((r) => {
+      r.hide();
+    });
   }
 
   show() {
@@ -237,6 +357,9 @@ class Panel {
     });
     this.sliders.forEach((s) => {
       s.show();
+    });
+    this.radios.forEach((r) => {
+      r.show();
     });
   }
 
@@ -261,6 +384,10 @@ class Panel {
     py += this.sliders.length - 1 * min_slider_size;
     for (let i = 0; i < this.buttons.length; i++) {
       this.buttons[i].draw(p5, px, py + i * min_slider_size);
+    }
+
+    for (let i = 0; i < this.radios.length; i++) {
+      this.radios[i].draw(p5, px, py + i * min_slider_size, width);
     }
   }
 }
@@ -403,6 +530,12 @@ export class PunkSynth {
 
     this.amp_panel = new Panel(this.p5, "Volume");
     this.amp_panel.addSlider(this.engine, "volume", 0, 1, 40);
+    this.amp_panel.addRadio(this.engine, "wav", [
+      "sine",
+      "square",
+      "saw",
+      "triangle"
+    ]);
     // this.amp_panel.addButton(this.StartLoop.bind(this), "start");
     // this.amp_panel.addButton(this.StopLoop.bind(this), "stop");
 
@@ -481,8 +614,8 @@ export class PunkSynth {
   }
 
   NextStep() {
-    const seconds_per_beat = 60.0 / this.tempo / 4;
-    this.nextStepTime += seconds_per_beat;
+    const seconds_per_sixteenth = 60.0 / this.tempo / 4;
+    this.nextStepTime += seconds_per_sixteenth;
     console.log("NEXTSTEP TIME:", this.nextStepTime);
     let melody = this.melodies[this.mx];
     this.currentStep = (this.currentStep + 1) % melody.length;
@@ -494,11 +627,12 @@ export class PunkSynth {
   ScheduleStep(step_number, time) {
     let melody = this.melodies[this.mx];
     console.log("STEP NUM:", step_number);
+    let noteLen = this.engine.attack + this.engine.decay + this.engine.release;
     if (melody[step_number]) {
       melody[step_number].forEach((n) => {
         if (n !== 0) {
           this.engine.noteOn(n, time);
-          this.engine.noteOff(time + 1);
+          this.engine.noteOff(time + noteLen);
         }
       })
     }

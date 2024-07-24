@@ -32,6 +32,7 @@ export class FileSystem {
     this.root.AddSubDirectory(home);
     this.root.AddSubDirectory(new Directory(this.root, "var"));
     this.root.AddSubDirectory(new Directory(this.root, "lib", "THE_LIBRARY"));
+    this.root.AddSubDirectory(new Directory(this.root, "wav", "WAVES"));
   }
 
   GetDir(dirname) {

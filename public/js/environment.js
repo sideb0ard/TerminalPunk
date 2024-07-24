@@ -2,6 +2,7 @@ export const Modes = Object.freeze({
   COMMAND: Symbol("command"),
   DSP: Symbol("dsp"),
   THE_LIBRARY: Symbol("the_library"),
+  WAVES: Symbol("waves"),
   NAE_KEYBOARD: Symbol("nae keyboard"),
 });
 

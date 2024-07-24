@@ -186,6 +186,10 @@ function EvalCdStatement(env, node) {
         console.log("GOT DA ACTION");
         env.mode = Modes.THE_LIBRARY;
       }
+      if (dir.action == "WAVES") {
+        console.log("GOT DA ACTION");
+        env.mode = Modes.WAVES;
+      }
       if (dir.action == "DSP") {
         console.log("GOT DA ACTION");
         env.mode = Modes.DSP;
