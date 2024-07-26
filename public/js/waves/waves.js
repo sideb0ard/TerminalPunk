@@ -1,6 +1,7 @@
 import {
-  Surfer
-} from "./surfer.js"
+  Surfer,
+  Shark
+} from "./characters.js"
 
 // key - C (48)
 // notes in Key [48, 50, 52, 53, 55, 57, 59, 60]
@@ -117,7 +118,10 @@ export class Waves {
       if (shouldScroll > 0) {
         startz[i] = startz[i] + 1;
       }
+
+      if (this.surfer.current_wave === i) {
+        this.surfer.Run(this.p5);
+      }
     }
-    this.surfer.Run(this.p5);
   }
 }
