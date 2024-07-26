@@ -116,6 +116,7 @@ function EvalNumberInfixExpression(operator, left, right) {
 }
 
 function EvalLsStatement(env, node) {
+  console.log("NODETARG:", node.target_);
   if (env && env.fs) {
     let str = new pobject.String();
     let target = "";
@@ -123,7 +124,12 @@ function EvalLsStatement(env, node) {
       if (node.target_.value_.startsWith("/")) {
         target = node.target_.value_;
       } else {
-        target = env.pwd + "/" + node.target_.value_;
+        if (env.pwd == "/") {
+          target = env.pwd + node.target_.value_;
+        } else {
+          target = env.pwd + "/" + node.target_.value_;
+        }
+        console.log("ELSE DISNAE START WITH SLASH PWD:", env.pwd, "TARGET:", target);
       }
     } else {
       target = env.pwd;

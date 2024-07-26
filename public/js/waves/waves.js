@@ -32,7 +32,7 @@ export class Waves {
     this.synth = synth;
     this.top_margin = bot.screenHeight;
 
-    this.surfer = new Surfer(p5, bot.top_margin, synth);
+    this.surfer = new Surfer(p5, bot.top_margin, synth, freqs);
 
     colors.push(p5.color(0, 153, 255));
     colors.push(p5.color(26, 163, 255));
